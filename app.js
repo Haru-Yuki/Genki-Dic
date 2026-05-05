@@ -2,6 +2,9 @@
   "use strict";
 
   const STORAGE_KEY = "genki_dic_v1";
+  const STORAGE_MANIFEST_KEY = `${STORAGE_KEY}:manifest`;
+  const STORAGE_CHUNK_PREFIX = `${STORAGE_KEY}:chunk:`;
+  const STORAGE_CHUNK_SIZE = 900;
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   const isTelegramMiniApp = Boolean(tg && tg.initData);
   const hasCloudStorage = Boolean(isTelegramMiniApp && tg.CloudStorage);
@@ -25,8 +28,7 @@
   const storage = {
     async get() {
       if (hasCloudStorage) {
-        const value = await cloudGetItem(STORAGE_KEY);
-        return value ? JSON.parse(value) : { lessons: [] };
+        return cloudGetData();
       }
 
       const value = window.localStorage.getItem(STORAGE_KEY);
@@ -36,7 +38,7 @@
       const serialized = JSON.stringify(data);
 
       if (hasCloudStorage) {
-        await cloudSetItem(STORAGE_KEY, serialized);
+        await cloudSetData(serialized);
         return;
       }
 
@@ -66,6 +68,53 @@
         resolve();
       });
     });
+  }
+
+  async function cloudGetData() {
+    const manifestValue = await cloudGetItem(STORAGE_MANIFEST_KEY);
+
+    if (manifestValue) {
+      const manifest = JSON.parse(manifestValue);
+      const chunkCount = Number(manifest.chunks || 0);
+
+      if (chunkCount > 0) {
+        const chunks = await Promise.all(
+          Array.from({ length: chunkCount }, (_, index) =>
+            cloudGetItem(`${STORAGE_CHUNK_PREFIX}${index}`),
+          ),
+        );
+
+        if (chunks.some((chunk) => typeof chunk !== "string")) {
+          throw new Error("CloudStorage data is incomplete");
+        }
+
+        return JSON.parse(chunks.join(""));
+      }
+    }
+
+    const legacyValue = await cloudGetItem(STORAGE_KEY);
+    return legacyValue ? JSON.parse(legacyValue) : { lessons: [] };
+  }
+
+  async function cloudSetData(serialized) {
+    const chunks = [];
+
+    for (let index = 0; index < serialized.length; index += STORAGE_CHUNK_SIZE) {
+      chunks.push(serialized.slice(index, index + STORAGE_CHUNK_SIZE));
+    }
+
+    await Promise.all(
+      chunks.map((chunk, index) => cloudSetItem(`${STORAGE_CHUNK_PREFIX}${index}`, chunk)),
+    );
+
+    await cloudSetItem(
+      STORAGE_MANIFEST_KEY,
+      JSON.stringify({
+        version: 1,
+        chunks: chunks.length,
+        updatedAt: new Date().toISOString(),
+      }),
+    );
   }
 
   function normalizeData(data) {

@@ -415,9 +415,11 @@
     const visible = state.readingVisible.has(entry.id);
 
     return `
-      <article class="word-row search-result">
-        <button class="word-main result-button" data-action="open-lesson" data-id="${escapeAttribute(lesson.id)}">
-          <small>Lesson ${escapeHtml(lesson.lessonNumber)} · Page ${escapeHtml(lesson.pageNumber)}</small>
+      <article
+        class="word-row search-result ${hasReading ? "has-reading" : ""}"
+        ${hasReading ? `data-action="toggle-reading" data-id="${escapeAttribute(entry.id)}"` : ""}
+      >
+        <div class="word-main">
           <div class="japanese">
             ${
               hasReading && visible
@@ -425,16 +427,12 @@
                 : escapeHtml(entry.japanese)
             }
           </div>
-        </button>
+        </div>
         <div class="translation">${escapeHtml(entry.translation)}</div>
         <div class="word-actions">
-          ${
-            hasReading
-              ? `<button class="ghost-button" data-action="toggle-reading" data-id="${escapeAttribute(entry.id)}">
-                  ${visible ? "Hide" : "Show"}
-                </button>`
-              : ""
-          }
+          <button class="ghost-button lesson-link-button" data-action="open-lesson" data-id="${escapeAttribute(lesson.id)}">
+            L${escapeHtml(lesson.lessonNumber)}
+          </button>
         </div>
       </article>
     `;
@@ -563,7 +561,10 @@
     const visible = state.readingVisible.has(entry.id);
 
     return `
-      <article class="word-row">
+      <article
+        class="word-row ${hasReading ? "has-reading" : ""}"
+        ${hasReading ? `data-action="toggle-reading" data-id="${escapeAttribute(entry.id)}"` : ""}
+      >
         <div class="word-main">
           <div class="japanese">
             ${
@@ -575,13 +576,6 @@
         </div>
         <div class="translation">${escapeHtml(entry.translation)}</div>
         <div class="word-actions">
-          ${
-            hasReading
-              ? `<button class="ghost-button" data-action="toggle-reading" data-id="${escapeAttribute(entry.id)}">
-                  ${visible ? "Hide" : "Show"}
-                </button>`
-              : ""
-          }
           ${renderEntryDeleteButton(entry)}
         </div>
       </article>
@@ -777,6 +771,7 @@
     if (!control) return;
 
     const action = control.dataset.action;
+    event.stopPropagation();
 
     if (action === "open-lesson") {
       navigate({ name: "lesson", id: control.dataset.id });

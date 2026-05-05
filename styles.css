@@ -305,24 +305,6 @@ input::placeholder {
   overflow: hidden;
 }
 
-.result-button {
-  display: block;
-  width: 100%;
-  min-height: 74px;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  padding: 14px;
-  text-align: left;
-}
-
-.result-button small {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--muted);
-  font-weight: 800;
-}
-
 .lesson-form,
 .word-form {
   display: grid;
@@ -515,9 +497,12 @@ input:focus {
 
 .word-row {
   display: grid;
-  grid-template-columns: minmax(112px, 0.72fr) minmax(0, 1fr) auto;
-  gap: 12px;
+  grid-template-columns: 148px 230px auto;
+  gap: 10px;
   align-items: center;
+  width: max-content;
+  max-width: 100%;
+  justify-self: start;
   min-height: 76px;
   padding: 14px;
   border: 1px solid rgba(196, 184, 166, 0.96);
@@ -528,6 +513,15 @@ input:focus {
   box-shadow:
     0 2px 0 rgba(36, 49, 61, 0.06),
     0 8px 18px rgba(36, 49, 61, 0.04);
+}
+
+.word-row.has-reading {
+  border-color: rgba(47, 111, 94, 0.34);
+  box-shadow:
+    inset 4px 0 0 rgba(47, 111, 94, 0.24),
+    0 2px 0 rgba(36, 49, 61, 0.06),
+    0 8px 18px rgba(36, 49, 61, 0.04);
+  cursor: pointer;
 }
 
 .word-main {
@@ -563,6 +557,7 @@ rt {
 }
 
 .translation {
+  width: 100%;
   color: #4f5964;
   overflow-wrap: anywhere;
   line-height: 1.35;
@@ -573,6 +568,12 @@ rt {
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
+}
+
+.lesson-link-button {
+  min-height: 34px;
+  padding: 0 9px;
+  font-size: 0.82rem;
 }
 
 .empty-state,
@@ -685,7 +686,7 @@ rt {
   }
 
   .word-row {
-    grid-template-columns: minmax(86px, 0.62fr) minmax(0, 1fr) auto;
+    grid-template-columns: 96px 150px auto;
     gap: 8px;
     min-height: 62px;
     padding: 10px;
@@ -705,5 +706,10 @@ rt {
     min-height: 34px;
     padding: 0 8px;
     font-size: 0.86rem;
+  }
+
+  .lesson-link-button {
+    padding: 0 7px;
+    font-size: 0.78rem;
   }
 }

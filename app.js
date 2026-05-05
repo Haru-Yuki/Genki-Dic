@@ -5,6 +5,9 @@
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   const isTelegramMiniApp = Boolean(tg && tg.initData);
   const hasCloudStorage = Boolean(isTelegramMiniApp && tg.CloudStorage);
+  const starterLessons = Array.isArray(window.GENKI_STARTER_LESSONS)
+    ? window.GENKI_STARTER_LESSONS
+    : [];
 
   const state = {
     ready: false,
@@ -13,6 +16,7 @@
     searchQuery: "",
     readingVisible: new Set(),
     saving: false,
+    status: "",
     error: "",
   };
 
@@ -134,6 +138,7 @@
     try {
       await storage.set(state.data);
     } catch (error) {
+      state.status = "";
       state.error = `Could not save changes: ${error.message}`;
     } finally {
       state.saving = false;
@@ -169,6 +174,13 @@
       .sort((a, b) => lessonSort(a.lesson, b.lesson));
   }
 
+  function getImportStats() {
+    const lessons = starterLessons.length;
+    const words = starterLessons.reduce((count, lesson) => count + lesson.entries.length, 0);
+
+    return { lessons, words };
+  }
+
   function createId() {
     if (window.crypto && typeof window.crypto.randomUUID === "function") {
       return window.crypto.randomUUID();
@@ -198,6 +210,7 @@
       ${renderTopbar("Genki Dictionary", "Personal Japanese dictionary")}
       ${renderNotice()}
       ${renderSearchPanel()}
+      ${renderStarterImport()}
 
       <section class="panel">
         <form class="lesson-form" data-action="create-lesson">
@@ -226,6 +239,22 @@
               <p>Create your first Genki page above.</p>
             </section>`
       }
+    `;
+  }
+
+  function renderStarterImport() {
+    if (!starterLessons.length) return "";
+
+    const { lessons, words } = getImportStats();
+
+    return `
+      <section class="import-panel">
+        <div>
+          <h2>Lessons 3-6</h2>
+          <p>${lessons} lessons · ${words} words from your Telegram messages</p>
+        </div>
+        <button class="ghost-button" data-action="import-starter">Import</button>
+      </section>
     `;
   }
 
@@ -387,6 +416,10 @@
       parts.push(`<div class="notice error">${escapeHtml(state.error)}</div>`);
     }
 
+    if (state.status) {
+      parts.push(`<div class="notice">${escapeHtml(state.status)}</div>`);
+    }
+
     if (state.saving) {
       parts.push(`<div class="notice">Saving...</div>`);
     }
@@ -491,6 +524,60 @@
     persist();
   }
 
+  function importStarterLessons() {
+    if (!starterLessons.length) return;
+
+    let addedLessons = 0;
+    let addedWords = 0;
+
+    starterLessons.forEach((starterLesson) => {
+      let lesson = state.data.lessons.find(
+        (item) =>
+          item.lessonNumber === starterLesson.lessonNumber &&
+          item.pageNumber === starterLesson.pageNumber,
+      );
+
+      if (!lesson) {
+        lesson = {
+          id: createId(),
+          lessonNumber: starterLesson.lessonNumber,
+          pageNumber: starterLesson.pageNumber,
+          createdAt: new Date().toISOString(),
+          entries: [],
+        };
+        state.data.lessons.push(lesson);
+        addedLessons += 1;
+      }
+
+      starterLesson.entries.forEach((starterEntry) => {
+        const exists = lesson.entries.some(
+          (entry) =>
+            entry.japanese === starterEntry.japanese &&
+            entry.translation === starterEntry.translation,
+        );
+
+        if (exists) return;
+
+        lesson.entries.push({
+          id: createId(),
+          japanese: starterEntry.japanese,
+          furigana: starterEntry.furigana || "",
+          translation: starterEntry.translation,
+          createdAt: new Date().toISOString(),
+        });
+        addedWords += 1;
+      });
+    });
+
+    state.status =
+      addedWords > 0
+        ? `Imported ${addedLessons} lessons and ${addedWords} words.`
+        : "Lessons 3-6 are already imported.";
+    state.error = "";
+
+    persist();
+  }
+
   function escapeHtml(value) {
     return String(value)
       .replace(/&/g, "&amp;")
@@ -536,6 +623,10 @@
     if (action === "clear-search") {
       state.searchQuery = "";
       render();
+    }
+
+    if (action === "import-starter") {
+      importStarterLessons();
     }
 
     if (action === "toggle-reading") {

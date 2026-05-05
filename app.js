@@ -12,7 +12,7 @@
   const state = {
     ready: false,
     route: { name: "home" },
-    data: { lessons: [] },
+    data: { settings: { japaneseStyle: "standard" }, lessons: [] },
     searchQuery: "",
     readingVisible: new Set(),
     saving: false,
@@ -70,8 +70,13 @@
 
   function normalizeData(data) {
     const lessons = Array.isArray(data && data.lessons) ? data.lessons : [];
+    const rawStyle = data && data.settings ? data.settings.japaneseStyle : "";
+    const japaneseStyle = rawStyle === "book" ? "book" : "standard";
 
     return {
+      settings: {
+        japaneseStyle,
+      },
       lessons: lessons
         .map((lesson) => ({
           id: String(lesson.id || createId()),
@@ -195,6 +200,8 @@
       return;
     }
 
+    app.dataset.japaneseStyle = state.data.settings.japaneseStyle;
+
     if (state.route.name === "lesson") {
       renderLesson();
       return;
@@ -209,6 +216,7 @@
     app.innerHTML = `
       ${renderTopbar("Genki Dictionary", "Personal Japanese dictionary")}
       ${renderNotice()}
+      ${renderStyleSettings()}
       ${renderSearchPanel()}
       ${renderStarterImport()}
 
@@ -239,6 +247,32 @@
               <p>Create your first Genki page above.</p>
             </section>`
       }
+    `;
+  }
+
+  function renderStyleSettings() {
+    const style = state.data.settings.japaneseStyle;
+
+    return `
+      <section class="settings-panel">
+        <div>
+          <h2>Japanese style</h2>
+        </div>
+        <div class="segmented-control" role="group" aria-label="Japanese text style">
+          <button
+            class="${style === "standard" ? "active" : ""}"
+            data-action="set-japanese-style"
+            data-style="standard"
+            type="button"
+          >Standard</button>
+          <button
+            class="${style === "book" ? "active" : ""}"
+            data-action="set-japanese-style"
+            data-style="book"
+            type="button"
+          >Book</button>
+        </div>
+      </section>
     `;
   }
 
@@ -562,6 +596,16 @@
     persist();
   }
 
+  function setJapaneseStyle(style) {
+    if (style !== "standard" && style !== "book") return;
+    if (state.data.settings.japaneseStyle === style) return;
+
+    state.data.settings.japaneseStyle = style;
+    state.status = `Japanese style set to ${style === "book" ? "Book" : "Standard"}.`;
+    state.error = "";
+    persist();
+  }
+
   function importStarterLessons() {
     if (!starterLessons.length) return;
 
@@ -665,6 +709,10 @@
 
     if (action === "import-starter") {
       importStarterLessons();
+    }
+
+    if (action === "set-japanese-style") {
+      setJapaneseStyle(control.dataset.style);
     }
 
     if (action === "toggle-reading") {

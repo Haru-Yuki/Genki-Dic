@@ -195,6 +195,53 @@ input::placeholder {
   line-height: 1.35;
 }
 
+.settings-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 0 24px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.72), rgba(250, 246, 237, 0.94)),
+    var(--surface);
+  box-shadow:
+    0 2px 0 rgba(36, 49, 61, 0.06),
+    0 8px 18px rgba(36, 49, 61, 0.04);
+}
+
+.settings-panel h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.segmented-control {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(229, 220, 203, 0.62);
+}
+
+.segmented-control button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  padding: 0 12px;
+  font-weight: 800;
+}
+
+.segmented-control button.active {
+  background: rgba(251, 248, 240, 0.96);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(36, 49, 61, 0.12);
+}
+
 .search-control {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -445,10 +492,18 @@ input:focus {
   min-height: 32px;
   overflow-wrap: anywhere;
   font-family:
-    "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif CJK JP", serif;
+    "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans CJK JP", "Meiryo",
+    sans-serif;
   font-size: 1.45rem;
-  font-weight: 800;
+  font-weight: 500;
   line-height: 1.25;
+}
+
+[data-japanese-style="book"] .japanese {
+  font-family:
+    "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif CJK JP", serif;
+  font-weight:
+    600;
 }
 
 ruby {
@@ -554,6 +609,11 @@ rt {
   }
 
   .import-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .settings-panel {
     align-items: stretch;
     flex-direction: column;
   }

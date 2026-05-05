@@ -1,11 +1,11 @@
 :root {
   color-scheme: light;
-  --bg: var(--tg-bg, #e6e1d6);
+  --bg: #e6e1d6;
   --paper: #eee7d8;
   --paper-soft: #e5dccb;
   --surface: rgba(250, 246, 237, 0.94);
   --surface-strong: #fbf8f0;
-  --text: var(--tg-text, #24313d);
+  --text: #24313d;
   --muted: #66717d;
   --line: #c4b8a6;
   --rule: rgba(74, 110, 139, 0.1);
@@ -117,6 +117,11 @@ button {
   font-size: 1.85rem;
   font-weight: 800;
   line-height: 1.05;
+}
+
+input::placeholder {
+  color: #8a9197;
+  opacity: 1;
 }
 
 .storage-pill {

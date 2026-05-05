@@ -112,8 +112,6 @@
     if (isTelegramMiniApp) {
       tg.ready();
       tg.expand();
-      document.documentElement.style.setProperty("--tg-bg", tg.themeParams.bg_color || "#f7f4ee");
-      document.documentElement.style.setProperty("--tg-text", tg.themeParams.text_color || "#1f2933");
     }
 
     try {

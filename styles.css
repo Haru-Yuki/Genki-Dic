@@ -104,6 +104,11 @@ button {
   justify-content: flex-start;
 }
 
+.lesson-header > div {
+  min-width: 0;
+  flex: 1;
+}
+
 .lesson-header h1 {
   font-size: 1.2rem;
   color: var(--muted);
@@ -352,6 +357,9 @@ input:focus {
 }
 
 .lesson-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
   border: 1px solid var(--line);
   border-radius: 8px;
   background:
@@ -363,7 +371,7 @@ input:focus {
     0 8px 18px rgba(36, 49, 61, 0.045);
 }
 
-.lesson-card button {
+.lesson-open-button {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -374,6 +382,15 @@ input:focus {
   color: inherit;
   padding: 14px;
   text-align: left;
+}
+
+.lesson-card-delete {
+  align-self: center;
+  margin-right: 12px;
+}
+
+.lesson-delete-button {
+  margin-left: auto;
 }
 
 .lesson-card strong,
@@ -543,6 +560,14 @@ rt {
 
   .word-row {
     grid-template-columns: 1fr;
+  }
+
+  .lesson-header {
+    align-items: flex-start;
+  }
+
+  .lesson-delete-button {
+    margin-left: 0;
   }
 
   .word-actions {

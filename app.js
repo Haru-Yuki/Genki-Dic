@@ -364,6 +364,13 @@
           <p>Lesson ${escapeHtml(lesson.lessonNumber)} · Page ${escapeHtml(lesson.pageNumber)}</p>
           <h1>${lesson.entries.length} ${lesson.entries.length === 1 ? "word" : "words"}</h1>
         </div>
+        <button
+          class="icon-button danger lesson-delete-button"
+          data-action="delete-lesson"
+          data-id="${escapeAttribute(lesson.id)}"
+          aria-label="Delete lesson"
+          title="Delete lesson"
+        >×</button>
       </header>
 
       ${renderNotice()}
@@ -430,13 +437,20 @@
   function renderLessonCard(lesson) {
     return `
       <article class="lesson-card">
-        <button data-action="open-lesson" data-id="${escapeAttribute(lesson.id)}">
+        <button class="lesson-open-button" data-action="open-lesson" data-id="${escapeAttribute(lesson.id)}">
           <span>
             <strong>Lesson ${escapeHtml(lesson.lessonNumber)}</strong>
             <small>Page ${escapeHtml(lesson.pageNumber)}</small>
           </span>
           <em>${lesson.entries.length}</em>
         </button>
+        <button
+          class="icon-button danger lesson-card-delete"
+          data-action="delete-lesson"
+          data-id="${escapeAttribute(lesson.id)}"
+          aria-label="Delete Lesson ${escapeAttribute(lesson.lessonNumber)}"
+          title="Delete lesson"
+        >×</button>
       </article>
     `;
   }
@@ -521,6 +535,30 @@
 
     lesson.entries = lesson.entries.filter((entry) => entry.id !== entryId);
     state.readingVisible.delete(entryId);
+    persist();
+  }
+
+  function deleteLesson(lessonId) {
+    const lesson = state.data.lessons.find((item) => item.id === lessonId);
+    if (!lesson) return;
+
+    const confirmed = window.confirm(
+      `Delete Lesson ${lesson.lessonNumber} · Page ${lesson.pageNumber} and all ${lesson.entries.length} words?`,
+    );
+
+    if (!confirmed) return;
+
+    state.data.lessons = state.data.lessons.filter((item) => item.id !== lessonId);
+    lesson.entries.forEach((entry) => state.readingVisible.delete(entry.id));
+    state.status = `Deleted Lesson ${lesson.lessonNumber} · Page ${lesson.pageNumber}.`;
+    state.error = "";
+
+    if (state.route.name === "lesson" && state.route.id === lessonId) {
+      navigate({ name: "home" });
+      persist();
+      return;
+    }
+
     persist();
   }
 
@@ -641,6 +679,10 @@
 
     if (action === "delete-entry") {
       deleteEntry(control.dataset.id);
+    }
+
+    if (action === "delete-lesson") {
+      deleteLesson(control.dataset.id);
     }
   });
 

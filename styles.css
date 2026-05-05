@@ -497,14 +497,12 @@ input:focus {
 
 .word-row {
   display: grid;
-  grid-template-columns: 148px 230px auto;
+  grid-template-columns: 136px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
-  width: max-content;
-  max-width: 100%;
-  justify-self: start;
-  min-height: 76px;
-  padding: 14px;
+  width: 100%;
+  min-height: 58px;
+  padding: 9px 10px;
   border: 1px solid rgba(196, 184, 166, 0.96);
   border-radius: 6px;
   background:
@@ -513,6 +511,10 @@ input:focus {
   box-shadow:
     0 2px 0 rgba(36, 49, 61, 0.06),
     0 8px 18px rgba(36, 49, 61, 0.04);
+}
+
+.word-row.has-actions {
+  grid-template-columns: 136px minmax(0, 1fr) auto;
 }
 
 .word-row.has-reading {
@@ -529,12 +531,12 @@ input:focus {
 }
 
 .japanese {
-  min-height: 32px;
+  min-height: 28px;
   overflow-wrap: anywhere;
   font-family:
     "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans CJK JP", "Meiryo",
     sans-serif;
-  font-size: 1.45rem;
+  font-size: 1.34rem;
   font-weight: 500;
   line-height: 1.25;
 }
@@ -560,7 +562,7 @@ rt {
   width: 100%;
   color: #4f5964;
   overflow-wrap: anywhere;
-  line-height: 1.35;
+  line-height: 1.25;
 }
 
 .word-actions {
@@ -686,19 +688,24 @@ rt {
   }
 
   .word-row {
-    grid-template-columns: 96px 150px auto;
+    grid-template-columns: 84px minmax(0, 1fr);
     gap: 8px;
-    min-height: 62px;
-    padding: 10px;
+    width: 100%;
+    min-height: 52px;
+    padding: 8px;
+  }
+
+  .word-row.has-actions {
+    grid-template-columns: 84px minmax(0, 1fr) auto;
   }
 
   .japanese {
-    min-height: 26px;
-    font-size: 1.25rem;
+    min-height: 24px;
+    font-size: 1.12rem;
   }
 
   .translation {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     line-height: 1.25;
   }
 

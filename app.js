@@ -416,7 +416,7 @@
 
     return `
       <article
-        class="word-row search-result ${hasReading ? "has-reading" : ""}"
+        class="word-row has-actions search-result ${hasReading ? "has-reading" : ""}"
         ${hasReading ? `data-action="toggle-reading" data-id="${escapeAttribute(entry.id)}"` : ""}
       >
         <div class="word-main">
@@ -559,10 +559,11 @@
   function renderEntry(entry) {
     const hasReading = Boolean(entry.furigana);
     const visible = state.readingVisible.has(entry.id);
+    const actions = renderEntryActions(entry);
 
     return `
       <article
-        class="word-row ${hasReading ? "has-reading" : ""}"
+        class="word-row ${actions ? "has-actions" : ""} ${hasReading ? "has-reading" : ""}"
         ${hasReading ? `data-action="toggle-reading" data-id="${escapeAttribute(entry.id)}"` : ""}
       >
         <div class="word-main">
@@ -575,17 +576,19 @@
           </div>
         </div>
         <div class="translation">${escapeHtml(entry.translation)}</div>
-        <div class="word-actions">
-          ${renderEntryDeleteButton(entry)}
-        </div>
+        ${actions}
       </article>
     `;
   }
 
-  function renderEntryDeleteButton(entry) {
+  function renderEntryActions(entry) {
     if (!state.data.settings.enableDeletion) return "";
 
-    return `<button class="icon-button danger delete-button" data-action="delete-entry" data-id="${escapeAttribute(entry.id)}" aria-label="Delete word" title="Delete word">×</button>`;
+    return `
+      <div class="word-actions">
+        <button class="icon-button danger delete-button" data-action="delete-entry" data-id="${escapeAttribute(entry.id)}" aria-label="Delete word" title="Delete word">×</button>
+      </div>
+    `;
   }
 
   function createLesson(form) {

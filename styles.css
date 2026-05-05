@@ -254,10 +254,6 @@ input::placeholder {
   flex-basis: 46px;
 }
 
-.search-head {
-  margin-top: 14px;
-}
-
 .search-list {
   margin-top: 10px;
 }
@@ -376,6 +372,14 @@ input:focus {
   color: var(--danger);
 }
 
+.delete-button {
+  width: 30px;
+  min-height: 30px;
+  flex-basis: 30px;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
 .full-width {
   width: 100%;
 }
@@ -433,7 +437,7 @@ input:focus {
 
 .lesson-card-delete {
   align-self: center;
-  margin-right: 12px;
+  margin-right: 10px;
 }
 
 .lesson-delete-button {

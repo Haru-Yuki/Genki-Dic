@@ -386,10 +386,6 @@
     }
 
     return `
-      <section class="section-head search-head">
-        <h2>Results</h2>
-        <span>${results.length}</span>
-      </section>
       <section class="word-list search-list">
         ${results.map(renderSearchResult).join("")}
       </section>
@@ -448,7 +444,7 @@
           <h1>${lesson.entries.length} ${lesson.entries.length === 1 ? "word" : "words"}</h1>
         </div>
         <button
-          class="icon-button danger lesson-delete-button"
+          class="icon-button danger delete-button lesson-delete-button"
           data-action="delete-lesson"
           data-id="${escapeAttribute(lesson.id)}"
           aria-label="Delete lesson"
@@ -528,7 +524,7 @@
           <em>${lesson.entries.length}</em>
         </button>
         <button
-          class="icon-button danger lesson-card-delete"
+          class="icon-button danger delete-button lesson-card-delete"
           data-action="delete-lesson"
           data-id="${escapeAttribute(lesson.id)}"
           aria-label="Delete Lesson ${escapeAttribute(lesson.lessonNumber)}"
@@ -562,7 +558,7 @@
                 </button>`
               : ""
           }
-          <button class="icon-button danger" data-action="delete-entry" data-id="${escapeAttribute(entry.id)}" aria-label="Delete word" title="Delete word">×</button>
+          <button class="icon-button danger delete-button" data-action="delete-entry" data-id="${escapeAttribute(entry.id)}" aria-label="Delete word" title="Delete word">×</button>
         </div>
       </article>
     `;

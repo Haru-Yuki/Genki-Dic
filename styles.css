@@ -196,9 +196,7 @@ input::placeholder {
 }
 
 .settings-panel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
   gap: 12px;
   margin: 16px 0 24px;
   padding: 12px 14px;
@@ -215,6 +213,20 @@ input::placeholder {
 .settings-panel h2 {
   margin: 0;
   font-size: 1rem;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.settings-row > span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
 .segmented-control {
@@ -240,6 +252,36 @@ input::placeholder {
   background: rgba(251, 248, 240, 0.96);
   color: var(--text);
   box-shadow: 0 1px 4px rgba(36, 49, 61, 0.12);
+}
+
+.switch-control {
+  position: relative;
+  width: 52px;
+  min-height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(229, 220, 203, 0.7);
+  padding: 3px;
+}
+
+.switch-control span {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(251, 248, 240, 0.96);
+  box-shadow: 0 1px 4px rgba(36, 49, 61, 0.18);
+  transition: transform 160ms ease;
+}
+
+.switch-control.active {
+  border-color: rgba(47, 111, 94, 0.34);
+  background: rgba(47, 111, 94, 0.22);
+}
+
+.switch-control.active span {
+  transform: translateX(20px);
+  background: var(--accent);
 }
 
 .search-control {
@@ -618,6 +660,10 @@ rt {
   }
 
   .settings-panel {
+    align-items: stretch;
+  }
+
+  .settings-row {
     align-items: stretch;
     flex-direction: column;
   }

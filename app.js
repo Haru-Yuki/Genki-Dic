@@ -15,7 +15,7 @@
   const state = {
     ready: false,
     route: { name: "home" },
-    data: { settings: { japaneseStyle: "standard" }, lessons: [] },
+    data: { settings: { japaneseStyle: "standard", enableDeletion: false }, lessons: [] },
     searchQuery: "",
     readingVisible: new Set(),
     saving: false,
@@ -121,10 +121,12 @@
     const lessons = Array.isArray(data && data.lessons) ? data.lessons : [];
     const rawStyle = data && data.settings ? data.settings.japaneseStyle : "";
     const japaneseStyle = rawStyle === "book" ? "book" : "standard";
+    const enableDeletion = Boolean(data && data.settings && data.settings.enableDeletion);
 
     return {
       settings: {
         japaneseStyle,
+        enableDeletion,
       },
       lessons: lessons
         .map((lesson) => ({
@@ -265,7 +267,7 @@
     app.innerHTML = `
       ${renderTopbar("Genki Dictionary", "Personal Japanese dictionary")}
       ${renderNotice()}
-      ${renderStyleSettings()}
+      ${renderSettings()}
       ${renderSearchPanel()}
       ${renderStarterImport()}
 
@@ -299,27 +301,42 @@
     `;
   }
 
-  function renderStyleSettings() {
+  function renderSettings() {
     const style = state.data.settings.japaneseStyle;
+    const deletionEnabled = state.data.settings.enableDeletion;
 
     return `
       <section class="settings-panel">
-        <div>
-          <h2>Japanese style</h2>
+        <h2>Settings</h2>
+
+        <div class="settings-row">
+          <span>Japanese style</span>
+          <div class="segmented-control" role="group" aria-label="Japanese text style">
+            <button
+              class="${style === "standard" ? "active" : ""}"
+              data-action="set-japanese-style"
+              data-style="standard"
+              type="button"
+            >Standard</button>
+            <button
+              class="${style === "book" ? "active" : ""}"
+              data-action="set-japanese-style"
+              data-style="book"
+              type="button"
+            >Book</button>
+          </div>
         </div>
-        <div class="segmented-control" role="group" aria-label="Japanese text style">
+
+        <div class="settings-row">
+          <span>Enable deletion</span>
           <button
-            class="${style === "standard" ? "active" : ""}"
-            data-action="set-japanese-style"
-            data-style="standard"
+            class="switch-control ${deletionEnabled ? "active" : ""}"
+            data-action="toggle-deletion"
+            aria-pressed="${deletionEnabled ? "true" : "false"}"
             type="button"
-          >Standard</button>
-          <button
-            class="${style === "book" ? "active" : ""}"
-            data-action="set-japanese-style"
-            data-style="book"
-            type="button"
-          >Book</button>
+          >
+            <span></span>
+          </button>
         </div>
       </section>
     `;
@@ -443,13 +460,7 @@
           <p>Lesson ${escapeHtml(lesson.lessonNumber)} · Page ${escapeHtml(lesson.pageNumber)}</p>
           <h1>${lesson.entries.length} ${lesson.entries.length === 1 ? "word" : "words"}</h1>
         </div>
-        <button
-          class="icon-button danger delete-button lesson-delete-button"
-          data-action="delete-lesson"
-          data-id="${escapeAttribute(lesson.id)}"
-          aria-label="Delete lesson"
-          title="Delete lesson"
-        >×</button>
+        ${renderLessonDeleteButton(lesson, "header")}
       </header>
 
       ${renderNotice()}
@@ -523,14 +534,27 @@
           </span>
           <em>${lesson.entries.length}</em>
         </button>
-        <button
-          class="icon-button danger delete-button lesson-card-delete"
-          data-action="delete-lesson"
-          data-id="${escapeAttribute(lesson.id)}"
-          aria-label="Delete Lesson ${escapeAttribute(lesson.lessonNumber)}"
-          title="Delete lesson"
-        >×</button>
+        ${renderLessonDeleteButton(lesson, "card")}
       </article>
+    `;
+  }
+
+  function renderLessonDeleteButton(lesson, placement) {
+    if (!state.data.settings.enableDeletion) return "";
+
+    const className =
+      placement === "card"
+        ? "icon-button danger delete-button lesson-card-delete"
+        : "icon-button danger delete-button lesson-delete-button";
+
+    return `
+      <button
+        class="${className}"
+        data-action="delete-lesson"
+        data-id="${escapeAttribute(lesson.id)}"
+        aria-label="Delete Lesson ${escapeAttribute(lesson.lessonNumber)}"
+        title="Delete lesson"
+      >×</button>
     `;
   }
 
@@ -558,10 +582,16 @@
                 </button>`
               : ""
           }
-          <button class="icon-button danger delete-button" data-action="delete-entry" data-id="${escapeAttribute(entry.id)}" aria-label="Delete word" title="Delete word">×</button>
+          ${renderEntryDeleteButton(entry)}
         </div>
       </article>
     `;
+  }
+
+  function renderEntryDeleteButton(entry) {
+    if (!state.data.settings.enableDeletion) return "";
+
+    return `<button class="icon-button danger delete-button" data-action="delete-entry" data-id="${escapeAttribute(entry.id)}" aria-label="Delete word" title="Delete word">×</button>`;
   }
 
   function createLesson(form) {
@@ -647,6 +677,15 @@
 
     state.data.settings.japaneseStyle = style;
     state.status = `Japanese style set to ${style === "book" ? "Book" : "Standard"}.`;
+    state.error = "";
+    persist();
+  }
+
+  function toggleDeletion() {
+    state.data.settings.enableDeletion = !state.data.settings.enableDeletion;
+    state.status = state.data.settings.enableDeletion
+      ? "Deletion enabled."
+      : "Deletion disabled.";
     state.error = "";
     persist();
   }
@@ -758,6 +797,10 @@
 
     if (action === "set-japanese-style") {
       setJapaneseStyle(control.dataset.style);
+    }
+
+    if (action === "toggle-deletion") {
+      toggleDeletion();
     }
 
     if (action === "toggle-reading") {

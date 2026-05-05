@@ -60,11 +60,17 @@
 
   function cloudSetItem(key, value) {
     return new Promise((resolve, reject) => {
-      tg.CloudStorage.setItem(key, value, (error) => {
+      tg.CloudStorage.setItem(key, value, (error, isStored) => {
         if (error) {
           reject(new Error(error));
           return;
         }
+
+        if (isStored === false) {
+          reject(new Error(`CloudStorage did not store ${key}`));
+          return;
+        }
+
         resolve();
       });
     });
@@ -103,9 +109,9 @@
       chunks.push(serialized.slice(index, index + STORAGE_CHUNK_SIZE));
     }
 
-    await Promise.all(
-      chunks.map((chunk, index) => cloudSetItem(`${STORAGE_CHUNK_PREFIX}${index}`, chunk)),
-    );
+    for (let index = 0; index < chunks.length; index += 1) {
+      await cloudSetItem(`${STORAGE_CHUNK_PREFIX}${index}`, chunks[index]);
+    }
 
     await cloudSetItem(
       STORAGE_MANIFEST_KEY,
@@ -115,6 +121,13 @@
         updatedAt: new Date().toISOString(),
       }),
     );
+
+    const saved = await cloudGetData();
+    const savedSerialized = JSON.stringify(saved);
+
+    if (savedSerialized !== serialized) {
+      throw new Error("CloudStorage verification failed");
+    }
   }
 
   function normalizeData(data) {

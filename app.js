@@ -3,7 +3,8 @@
 
   const STORAGE_KEY = "genki_dic_v1";
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-  const hasCloudStorage = Boolean(tg && tg.CloudStorage);
+  const isTelegramMiniApp = Boolean(tg && tg.initData);
+  const hasCloudStorage = Boolean(isTelegramMiniApp && tg.CloudStorage);
 
   const state = {
     ready: false,
@@ -108,7 +109,7 @@
   }
 
   async function boot() {
-    if (tg) {
+    if (isTelegramMiniApp) {
       tg.ready();
       tg.expand();
       document.documentElement.style.setProperty("--tg-bg", tg.themeParams.bg_color || "#f7f4ee");

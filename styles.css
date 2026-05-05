@@ -515,7 +515,7 @@ input:focus {
 
 .word-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(112px, 0.72fr) minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   min-height: 76px;
@@ -563,7 +563,6 @@ rt {
 }
 
 .translation {
-  margin-top: 6px;
   color: #4f5964;
   overflow-wrap: anywhere;
   line-height: 1.35;
@@ -572,6 +571,7 @@ rt {
 .word-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
 }
 
@@ -685,6 +685,7 @@ rt {
   }
 
   .word-row {
+    grid-template-columns: minmax(86px, 0.62fr) minmax(0, 1fr) auto;
     gap: 8px;
     min-height: 62px;
     padding: 10px;
@@ -696,14 +697,13 @@ rt {
   }
 
   .translation {
-    margin-top: 3px;
     font-size: 0.95rem;
     line-height: 1.25;
   }
 
   .word-actions .ghost-button {
     min-height: 34px;
-    padding: 0 10px;
+    padding: 0 8px;
     font-size: 0.86rem;
   }
 }

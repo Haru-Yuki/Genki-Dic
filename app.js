@@ -425,8 +425,8 @@
                 : escapeHtml(entry.japanese)
             }
           </div>
-          <div class="translation">${escapeHtml(entry.translation)}</div>
         </button>
+        <div class="translation">${escapeHtml(entry.translation)}</div>
         <div class="word-actions">
           ${
             hasReading
@@ -572,8 +572,8 @@
                 : escapeHtml(entry.japanese)
             }
           </div>
-          <div class="translation">${escapeHtml(entry.translation)}</div>
         </div>
+        <div class="translation">${escapeHtml(entry.translation)}</div>
         <div class="word-actions">
           ${
             hasReading

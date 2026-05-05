@@ -2,8 +2,8 @@
   "use strict";
 
   const STORAGE_KEY = "genki_dic_v1";
-  const STORAGE_MANIFEST_KEY = `${STORAGE_KEY}:manifest`;
-  const STORAGE_CHUNK_PREFIX = `${STORAGE_KEY}:chunk:`;
+  const STORAGE_MANIFEST_KEY = `${STORAGE_KEY}_manifest`;
+  const STORAGE_CHUNK_PREFIX = `${STORAGE_KEY}_chunk_`;
   const STORAGE_CHUNK_SIZE = 900;
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   const isTelegramMiniApp = Boolean(tg && tg.initData);

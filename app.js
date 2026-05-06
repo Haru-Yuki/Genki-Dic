@@ -38,6 +38,7 @@
   const app = document.getElementById("app");
   let noticeDismissTimer = 0;
   let noticeDismissKey = "";
+  let persistQueue = Promise.resolve();
 
   const storage = {
     async get() {
@@ -226,18 +227,32 @@
   }
 
   async function persist() {
+    const wasSaving = state.saving;
     state.saving = true;
     state.error = "";
-    render();
+
+    if (!wasSaving) {
+      render();
+    }
+
+    const currentPersist = persistQueue.catch(() => undefined).then(async () => {
+      await storage.set(state.data);
+    });
+
+    persistQueue = currentPersist;
 
     try {
-      await storage.set(state.data);
+      await currentPersist;
     } catch (error) {
-      state.status = "";
-      state.error = `Could not save changes: ${error.message}`;
+      if (currentPersist === persistQueue) {
+        state.status = "";
+        state.error = `Could not save changes: ${error.message}`;
+      }
     } finally {
-      state.saving = false;
-      render();
+      if (currentPersist === persistQueue) {
+        state.saving = false;
+        render();
+      }
     }
   }
 
@@ -593,6 +608,18 @@
         ${results.map(renderSearchResult).join("")}
       </section>
     `;
+  }
+
+  function updateSearchResults() {
+    const results = document.getElementById("search-results");
+    if (results) {
+      results.innerHTML = renderSearchResults();
+    }
+
+    const clearButton = document.querySelector("[data-action='clear-search']");
+    if (clearButton) {
+      clearButton.hidden = !state.searchQuery;
+    }
   }
 
   function renderSearchResult(result) {
@@ -1111,7 +1138,11 @@
 
     if (action === "clear-search") {
       state.searchQuery = "";
-      render();
+      const searchInput = document.querySelector("[data-role='global-search']");
+      if (searchInput) {
+        searchInput.value = "";
+      }
+      updateSearchResults();
     }
 
     if (action === "open-modal") {
@@ -1193,16 +1224,7 @@
     if (!input) return;
 
     state.searchQuery = input.value;
-
-    const results = document.getElementById("search-results");
-    if (results) {
-      results.innerHTML = renderSearchResults();
-    }
-
-    const clearButton = document.querySelector("[data-action='clear-search']");
-    if (clearButton) {
-      clearButton.hidden = !state.searchQuery;
-    }
+    updateSearchResults();
   });
 
   window.addEventListener("hashchange", () => {

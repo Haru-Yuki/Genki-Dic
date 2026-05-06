@@ -438,11 +438,11 @@
         <form class="lesson-form" data-action="create-lesson">
           <label>
             <span>Lesson</span>
-            <input name="lessonNumber" inputmode="numeric" autocomplete="off" placeholder="5" required />
+            <input name="lessonNumber" inputmode="numeric" ${renderInputAssistOff()} placeholder="5" required />
           </label>
           <label>
             <span>Page</span>
-            <input name="pageNumber" inputmode="numeric" autocomplete="off" placeholder="130" required />
+            <input name="pageNumber" inputmode="numeric" ${renderInputAssistOff()} placeholder="130" required />
           </label>
           <button class="primary-button" type="submit">Create</button>
         </form>
@@ -470,22 +470,22 @@
           <input type="hidden" name="entryId" value="${escapeAttribute(entry.id)}" />
           <label>
             <span>Japanese</span>
-            <input name="japanese" autocomplete="off" value="${escapeAttribute(entry.japanese)}" required />
+            <input name="japanese" ${renderInputAssistOff()} value="${escapeAttribute(entry.japanese)}" required />
           </label>
           <label>
             <span>Furigana</span>
-            <input name="furigana" autocomplete="off" value="${escapeAttribute(entry.furigana)}" />
+            <input name="furigana" ${renderInputAssistOff()} value="${escapeAttribute(entry.furigana)}" />
           </label>
           <label>
             <span>Romaji</span>
-            <input name="romaji" autocomplete="off" value="${escapeAttribute(entry.romaji)}" />
+            <input name="romaji" ${renderInputAssistOff()} value="${escapeAttribute(entry.romaji)}" />
           </label>
           <label>
             <span>Translation</span>
             <input
               data-role="edit-translation-input"
               name="translation"
-              autocomplete="off"
+              ${renderInputAssistOff()}
               value="${escapeAttribute(entry.translation)}"
             />
           </label>
@@ -599,7 +599,7 @@
             <input
               data-role="global-search"
               type="search"
-              autocomplete="off"
+              ${renderInputAssistOff()}
               placeholder="食べ物, たべもの, food"
               value="${escapeAttribute(state.searchQuery)}"
             />
@@ -757,19 +757,19 @@
                 <form class="word-form" data-action="create-entry">
                   <label>
                     <span>Japanese</span>
-                    <input name="japanese" autocomplete="off" placeholder="食べ物" required />
+                    <input name="japanese" ${renderInputAssistOff()} placeholder="食べ物" required />
                   </label>
                   <label>
                     <span>Furigana</span>
-                    <input name="furigana" autocomplete="off" placeholder="たべもの" />
+                    <input name="furigana" ${renderInputAssistOff()} placeholder="たべもの" />
                   </label>
                   <label>
                     <span>Romaji</span>
-                    <input name="romaji" autocomplete="off" placeholder="tabemono" />
+                    <input name="romaji" ${renderInputAssistOff()} placeholder="tabemono" />
                   </label>
                   <label>
                     <span>Translation</span>
-                    <input name="translation" autocomplete="off" placeholder="food / meal" />
+                    <input name="translation" ${renderInputAssistOff()} placeholder="food / meal" />
                   </label>
                   <button class="primary-button wide" type="submit">Add word</button>
                 </form>
@@ -789,6 +789,10 @@
     }
 
     root.innerHTML = renderAddWordBlock();
+  }
+
+  function renderInputAssistOff() {
+    return 'autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"';
   }
 
   function renderTopbar(title, subtitle) {

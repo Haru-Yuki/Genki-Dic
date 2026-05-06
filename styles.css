@@ -15,6 +15,9 @@
   --accent-soft: rgba(47, 111, 94, 0.12);
   --danger: #b94335;
   --shadow: 0 18px 50px rgba(36, 49, 61, 0.15);
+  --japanese-size: 1.34rem;
+  --reading-size: 0.95rem;
+  --translation-size: 1rem;
   font-family:
     "Avenir Next", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
@@ -140,6 +143,18 @@ button {
   box-shadow: var(--shadow);
 }
 
+.app-shell[data-font-size="small"] {
+  --japanese-size: 1.12rem;
+  --reading-size: 0.82rem;
+  --translation-size: 0.9rem;
+}
+
+.app-shell[data-font-size="large"] {
+  --japanese-size: 1.62rem;
+  --reading-size: 1.08rem;
+  --translation-size: 1.12rem;
+}
+
 .topbar,
 .lesson-header {
   display: flex;
@@ -179,6 +194,12 @@ button {
   font-size: 1.2rem;
   color: var(--muted);
   font-weight: 600;
+}
+
+.lesson-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .lesson-header p {
@@ -345,6 +366,10 @@ input::placeholder {
   background: rgba(229, 220, 203, 0.62);
 }
 
+.segmented-control.three-options {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
 .segmented-control button {
   min-height: 38px;
   border: 0;
@@ -414,6 +439,60 @@ input::placeholder {
 .search-result {
   padding: 0;
   overflow: hidden;
+}
+
+.add-word-section {
+  margin: 0 0 20px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, 0.68), rgba(250, 246, 237, 0.92)),
+    var(--surface);
+  box-shadow:
+    0 2px 0 rgba(36, 49, 61, 0.06),
+    0 8px 18px rgba(36, 49, 61, 0.04);
+  overflow: hidden;
+}
+
+.add-word-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  border: 0;
+  background: transparent;
+  color: var(--accent-strong);
+  padding: 12px 14px;
+  text-align: left;
+  transition:
+    background 160ms ease,
+    transform 120ms ease;
+}
+
+.add-word-toggle:hover {
+  background: rgba(47, 111, 94, 0.08);
+}
+
+.add-word-toggle:active {
+  transform: translateY(1px);
+}
+
+.add-word-toggle span {
+  color: var(--text);
+  font-weight: 900;
+}
+
+.add-word-toggle small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.add-word-panel {
+  padding: 0 14px 14px;
+  animation: paperSettle 180ms ease-out both;
 }
 
 .lesson-form,
@@ -683,7 +762,7 @@ input:focus {
   font-family:
     "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans CJK JP", "Meiryo",
     sans-serif;
-  font-size: 1.34rem;
+  font-size: var(--japanese-size);
   font-weight: 500;
   line-height: 1.25;
 }
@@ -710,6 +789,7 @@ rt {
   width: 100%;
   color: #4f5964;
   overflow-wrap: anywhere;
+  font-size: var(--translation-size);
   line-height: 1.25;
 }
 
@@ -717,7 +797,7 @@ rt {
   min-width: 0;
   color: var(--accent-strong);
   overflow-wrap: anywhere;
-  font-size: 0.95rem;
+  font-size: var(--reading-size);
   font-weight: 700;
   line-height: 1.2;
 }
@@ -737,6 +817,12 @@ rt {
   min-height: 34px;
   padding: 0 9px;
   font-size: 0.82rem;
+}
+
+.edit-button {
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 0.78rem;
 }
 
 .empty-state,
@@ -806,6 +892,9 @@ rt {
 
 @media (max-width: 560px) {
   .app-shell {
+    --japanese-size: 1.12rem;
+    --reading-size: 0.8rem;
+    --translation-size: 0.9rem;
     padding-left: 44px;
     padding-right: 12px;
     border-right: 0;
@@ -822,6 +911,18 @@ rt {
       var(--paper);
   }
 
+  .app-shell[data-font-size="small"] {
+    --japanese-size: 1rem;
+    --reading-size: 0.74rem;
+    --translation-size: 0.84rem;
+  }
+
+  .app-shell[data-font-size="large"] {
+    --japanese-size: 1.34rem;
+    --reading-size: 0.92rem;
+    --translation-size: 1rem;
+  }
+
   .topbar {
     align-items: flex-start;
     flex-direction: row;
@@ -833,7 +934,7 @@ rt {
   }
 
   .lesson-header p {
-    font-size: 1.45rem;
+    font-size: 1.25rem;
   }
 
   .lesson-form,
@@ -855,8 +956,16 @@ rt {
     flex-direction: column;
   }
 
+  .segmented-control {
+    width: 100%;
+  }
+
   .lesson-header {
     align-items: flex-start;
+  }
+
+  .lesson-header-actions {
+    gap: 6px;
   }
 
   .lesson-delete-button {
@@ -865,6 +974,12 @@ rt {
 
   .word-actions {
     justify-content: flex-end;
+  }
+
+  .add-word-toggle {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
   }
 
   .word-list {
@@ -885,16 +1000,13 @@ rt {
 
   .japanese {
     min-height: 24px;
-    font-size: 1.12rem;
   }
 
   .translation {
-    font-size: 0.9rem;
     line-height: 1.25;
   }
 
   .reading {
-    font-size: 0.8rem;
     line-height: 1.2;
   }
 

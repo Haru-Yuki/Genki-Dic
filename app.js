@@ -16,8 +16,18 @@
   const state = {
     ready: false,
     route: { name: "home" },
-    data: { settings: { japaneseStyle: "standard", enableDeletion: false }, lessons: [] },
+    data: {
+      settings: {
+        japaneseStyle: "standard",
+        fontSize: "medium",
+        enableDeletion: false,
+        enableEdit: false,
+      },
+      lessons: [],
+    },
     modal: "",
+    editEntryId: "",
+    addWordOpen: false,
     searchQuery: "",
     readingVisible: new Set(),
     saving: false,
@@ -138,12 +148,17 @@
     const lessons = Array.isArray(data && data.lessons) ? data.lessons : [];
     const rawStyle = data && data.settings ? data.settings.japaneseStyle : "";
     const japaneseStyle = rawStyle === "book" ? "book" : "standard";
+    const rawFontSize = data && data.settings ? data.settings.fontSize : "";
+    const fontSize = ["small", "medium", "large"].includes(rawFontSize) ? rawFontSize : "medium";
     const enableDeletion = Boolean(data && data.settings && data.settings.enableDeletion);
+    const enableEdit = Boolean(data && data.settings && data.settings.enableEdit);
 
     return {
       settings: {
         japaneseStyle,
+        fontSize,
         enableDeletion,
+        enableEdit,
       },
       lessons: lessons
         .map((lesson) => ({
@@ -293,6 +308,7 @@
     }
 
     app.dataset.japaneseStyle = state.data.settings.japaneseStyle;
+    app.dataset.fontSize = state.data.settings.fontSize;
 
     if (state.route.name === "lesson") {
       renderLesson();
@@ -334,8 +350,18 @@
   function renderModal() {
     if (!state.modal) return "";
 
-    const title = state.modal === "settings" ? "Settings" : "Create lesson";
-    const content = state.modal === "settings" ? renderSettings() : renderCreateLessonForm();
+    const titles = {
+      settings: "Settings",
+      create: "Create lesson",
+      editEntry: "Edit word",
+    };
+    const title = titles[state.modal] || "Settings";
+    const content =
+      state.modal === "settings"
+        ? renderSettings()
+        : state.modal === "editEntry"
+          ? renderEditEntryForm()
+          : renderCreateLessonForm();
 
     return `
       <section class="modal-backdrop" data-action="close-modal">
@@ -383,9 +409,51 @@
     `;
   }
 
+  function renderEditEntryForm() {
+    const context = findEntryContext(state.editEntryId);
+
+    if (!context) {
+      return `
+        <section class="empty-state compact-state">
+          <h2>Word not found</h2>
+          <p>This word is no longer in the dictionary.</p>
+        </section>
+      `;
+    }
+
+    const { entry } = context;
+
+    return `
+      <section class="panel modal-content-panel">
+        <form class="word-form" data-action="update-entry">
+          <input type="hidden" name="entryId" value="${escapeAttribute(entry.id)}" />
+          <label>
+            <span>Japanese</span>
+            <input name="japanese" autocomplete="off" value="${escapeAttribute(entry.japanese)}" required />
+          </label>
+          <label>
+            <span>Furigana</span>
+            <input name="furigana" autocomplete="off" value="${escapeAttribute(entry.furigana)}" />
+          </label>
+          <label>
+            <span>Romaji</span>
+            <input name="romaji" autocomplete="off" value="${escapeAttribute(entry.romaji)}" />
+          </label>
+          <label>
+            <span>Translation</span>
+            <input name="translation" autocomplete="off" value="${escapeAttribute(entry.translation)}" required />
+          </label>
+          <button class="primary-button wide" type="submit">Save word</button>
+        </form>
+      </section>
+    `;
+  }
+
   function renderSettings() {
     const style = state.data.settings.japaneseStyle;
+    const fontSize = state.data.settings.fontSize;
     const deletionEnabled = state.data.settings.enableDeletion;
+    const editEnabled = state.data.settings.enableEdit;
 
     return `
       <section class="settings-panel">
@@ -407,6 +475,42 @@
               type="button"
             >Book</button>
           </div>
+        </div>
+
+        <div class="settings-row">
+          <span>Font size</span>
+          <div class="segmented-control three-options" role="group" aria-label="Word card font size">
+            <button
+              class="${fontSize === "small" ? "active" : ""}"
+              data-action="set-font-size"
+              data-size="small"
+              type="button"
+            >Small</button>
+            <button
+              class="${fontSize === "medium" ? "active" : ""}"
+              data-action="set-font-size"
+              data-size="medium"
+              type="button"
+            >Medium</button>
+            <button
+              class="${fontSize === "large" ? "active" : ""}"
+              data-action="set-font-size"
+              data-size="large"
+              type="button"
+            >Large</button>
+          </div>
+        </div>
+
+        <div class="settings-row">
+          <span>Enable edit</span>
+          <button
+            class="switch-control ${editEnabled ? "active" : ""}"
+            data-action="toggle-edit"
+            aria-pressed="${editEnabled ? "true" : "false"}"
+            type="button"
+          >
+            <span></span>
+          </button>
         </div>
 
         <div class="settings-row">
@@ -535,40 +639,80 @@
         </button>
         <div>
           <p>Lesson ${escapeHtml(lesson.lessonNumber)} · Page ${escapeHtml(lesson.pageNumber)}</p>
-          <h1>${lesson.entries.length} ${lesson.entries.length === 1 ? "word" : "words"}</h1>
         </div>
-        ${renderLessonDeleteButton(lesson, "header")}
+        <div class="lesson-header-actions">
+          ${renderLessonDeleteButton(lesson, "header")}
+          <button class="icon-button" data-action="open-modal" data-modal="settings" aria-label="Open settings" title="Open settings">⚙</button>
+        </div>
       </header>
 
       ${renderNotice()}
 
-      <section class="panel">
-        <form class="word-form" data-action="create-entry">
-          <label>
-            <span>Japanese</span>
-            <input name="japanese" autocomplete="off" placeholder="食べ物" required />
-          </label>
-          <label>
-            <span>Furigana</span>
-            <input name="furigana" autocomplete="off" placeholder="たべもの" />
-          </label>
-          <label class="wide">
-            <span>Translation</span>
-            <input name="translation" autocomplete="off" placeholder="food / meal" required />
-          </label>
-          <button class="primary-button wide" type="submit">Add word</button>
-        </form>
-      </section>
+      <div id="add-word-root">${renderAddWordBlock()}</div>
 
       ${
         lesson.entries.length
           ? `<section class="word-list">${lesson.entries.map(renderEntry).join("")}</section>`
           : `<section class="empty-state">
               <h2>No words yet</h2>
-              <p>Add Japanese, optional furigana, and a translation.</p>
+              <p>Add Japanese, optional reading, and a translation.</p>
             </section>`
       }
+      ${renderModalRoot()}
     `;
+  }
+
+  function renderAddWordBlock() {
+    return `
+      <section class="add-word-section ${state.addWordOpen ? "open" : ""}">
+        <button
+          class="add-word-toggle"
+          data-action="toggle-add-word"
+          aria-expanded="${state.addWordOpen ? "true" : "false"}"
+          type="button"
+        >
+          <span>+ Add word</span>
+          <small>Japanese · Furigana · Romaji · Translation</small>
+        </button>
+
+        ${
+          state.addWordOpen
+            ? `<div class="add-word-panel">
+                <form class="word-form" data-action="create-entry">
+                  <label>
+                    <span>Japanese</span>
+                    <input name="japanese" autocomplete="off" placeholder="食べ物" required />
+                  </label>
+                  <label>
+                    <span>Furigana</span>
+                    <input name="furigana" autocomplete="off" placeholder="たべもの" />
+                  </label>
+                  <label>
+                    <span>Romaji</span>
+                    <input name="romaji" autocomplete="off" placeholder="tabemono" />
+                  </label>
+                  <label>
+                    <span>Translation</span>
+                    <input name="translation" autocomplete="off" placeholder="food / meal" required />
+                  </label>
+                  <button class="primary-button wide" type="submit">Add word</button>
+                </form>
+              </div>`
+            : ""
+        }
+      </section>
+    `;
+  }
+
+  function updateAddWordBlock() {
+    const root = document.getElementById("add-word-root");
+
+    if (!root) {
+      render();
+      return;
+    }
+
+    root.innerHTML = renderAddWordBlock();
   }
 
   function renderTopbar(title, subtitle) {
@@ -698,11 +842,25 @@
   }
 
   function renderEntryActions(entry) {
-    if (!state.data.settings.enableDeletion) return "";
+    const actions = [];
+
+    if (state.data.settings.enableEdit) {
+      actions.push(
+        `<button class="ghost-button edit-button" data-action="open-edit-entry" data-id="${escapeAttribute(entry.id)}" type="button">Edit</button>`,
+      );
+    }
+
+    if (state.data.settings.enableDeletion) {
+      actions.push(
+        `<button class="icon-button danger delete-button" data-action="delete-entry" data-id="${escapeAttribute(entry.id)}" aria-label="Delete word" title="Delete word">×</button>`,
+      );
+    }
+
+    if (!actions.length) return "";
 
     return `
       <div class="word-actions">
-        <button class="icon-button danger delete-button" data-action="delete-entry" data-id="${escapeAttribute(entry.id)}" aria-label="Delete word" title="Delete word">×</button>
+        ${actions.join("")}
       </div>
     `;
   }
@@ -736,6 +894,7 @@
     const formData = new FormData(form);
     const japanese = String(formData.get("japanese") || "").trim();
     const furigana = String(formData.get("furigana") || "").trim();
+    const romaji = String(formData.get("romaji") || "").trim();
     const translation = String(formData.get("translation") || "").trim();
 
     if (!japanese || !translation) return;
@@ -744,12 +903,36 @@
       id: createId(),
       japanese,
       furigana,
-      romaji: "",
+      romaji,
       translation,
       createdAt: new Date().toISOString(),
     });
 
     form.reset();
+    persist();
+  }
+
+  function updateEntry(form) {
+    const formData = new FormData(form);
+    const entryId = String(formData.get("entryId") || "");
+    const context = findEntryContext(entryId);
+    if (!context) return;
+
+    const japanese = String(formData.get("japanese") || "").trim();
+    const furigana = String(formData.get("furigana") || "").trim();
+    const romaji = String(formData.get("romaji") || "").trim();
+    const translation = String(formData.get("translation") || "").trim();
+
+    if (!japanese || !translation) return;
+
+    context.entry.japanese = japanese;
+    context.entry.furigana = furigana;
+    context.entry.romaji = romaji;
+    context.entry.translation = translation;
+    state.modal = "";
+    state.editEntryId = "";
+    state.status = "Word updated.";
+    state.error = "";
     persist();
   }
 
@@ -796,11 +979,30 @@
     persist();
   }
 
+  function setFontSize(size) {
+    if (!["small", "medium", "large"].includes(size)) return;
+    if (state.data.settings.fontSize === size) return;
+
+    state.data.settings.fontSize = size;
+    state.status = `Font size set to ${size}.`;
+    state.error = "";
+    persist();
+  }
+
   function toggleDeletion() {
     state.data.settings.enableDeletion = !state.data.settings.enableDeletion;
     state.status = state.data.settings.enableDeletion
       ? "Deletion enabled."
       : "Deletion disabled.";
+    state.error = "";
+    persist();
+  }
+
+  function toggleEdit() {
+    state.data.settings.enableEdit = !state.data.settings.enableEdit;
+    state.status = state.data.settings.enableEdit
+      ? "Edit enabled."
+      : "Edit disabled.";
     state.error = "";
     persist();
   }
@@ -886,6 +1088,10 @@
     if (form.dataset.action === "create-entry") {
       createEntry(form);
     }
+
+    if (form.dataset.action === "update-entry") {
+      updateEntry(form);
+    }
   });
 
   document.addEventListener("click", (event) => {
@@ -913,8 +1119,15 @@
       updateModal();
     }
 
+    if (action === "open-edit-entry") {
+      state.modal = "editEntry";
+      state.editEntryId = control.dataset.id || "";
+      updateModal();
+    }
+
     if (action === "close-modal") {
       state.modal = "";
+      state.editEntryId = "";
       updateModal();
     }
 
@@ -930,8 +1143,21 @@
       setJapaneseStyle(control.dataset.style);
     }
 
+    if (action === "set-font-size") {
+      setFontSize(control.dataset.size);
+    }
+
     if (action === "toggle-deletion") {
       toggleDeletion();
+    }
+
+    if (action === "toggle-edit") {
+      toggleEdit();
+    }
+
+    if (action === "toggle-add-word") {
+      state.addWordOpen = !state.addWordOpen;
+      updateAddWordBlock();
     }
 
     if (action === "toggle-reading") {
@@ -982,6 +1208,9 @@
   window.addEventListener("hashchange", () => {
     state.route = parseRoute();
     state.readingVisible.clear();
+    state.addWordOpen = false;
+    state.modal = "";
+    state.editEntryId = "";
     render();
   });
 

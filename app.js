@@ -148,13 +148,20 @@
           pageNumber: String(lesson.pageNumber || "").trim(),
           createdAt: lesson.createdAt || new Date().toISOString(),
           entries: Array.isArray(lesson.entries)
-            ? lesson.entries.map((entry) => ({
-                id: String(entry.id || createId()),
-                japanese: String(entry.japanese || "").trim(),
-                furigana: String(entry.furigana || "").trim(),
-                translation: String(entry.translation || "").trim(),
-                createdAt: entry.createdAt || new Date().toISOString(),
-              }))
+            ? lesson.entries.map((entry) => {
+                const rawFurigana = String(entry.furigana || "").trim();
+                const rawRomaji = String(entry.romaji || "").trim();
+                const furiganaLooksLikeRomaji = /[A-Za-z]/.test(rawFurigana);
+
+                return {
+                  id: String(entry.id || createId()),
+                  japanese: String(entry.japanese || "").trim(),
+                  furigana: furiganaLooksLikeRomaji ? "" : rawFurigana,
+                  romaji: rawRomaji || (furiganaLooksLikeRomaji ? rawFurigana : ""),
+                  translation: String(entry.translation || "").trim(),
+                  createdAt: entry.createdAt || new Date().toISOString(),
+                };
+              })
             : [],
         }))
         .filter((lesson) => lesson.lessonNumber && lesson.pageNumber),
@@ -234,7 +241,7 @@
         lesson.entries.map((entry) => ({
           lesson,
           entry,
-          haystack: [entry.japanese, entry.furigana, entry.translation]
+          haystack: [entry.japanese, entry.furigana, entry.romaji, entry.translation]
             .join(" ")
             .toLocaleLowerCase(),
         })),
@@ -248,6 +255,14 @@
     const words = starterLessons.reduce((count, lesson) => count + lesson.entries.length, 0);
 
     return { lessons, words };
+  }
+
+  function renderJapanese(entry, visible) {
+    if (visible && entry.furigana) {
+      return `<ruby>${escapeHtml(entry.japanese)}<rt>${escapeHtml(entry.furigana)}</rt></ruby>`;
+    }
+
+    return escapeHtml(entry.japanese);
   }
 
   function createId() {
@@ -424,7 +439,7 @@
 
   function renderSearchResult(result) {
     const { lesson, entry } = result;
-    const hasReading = Boolean(entry.furigana);
+    const hasReading = Boolean(entry.furigana || entry.romaji);
     const visible = state.readingVisible.has(entry.id);
 
     return `
@@ -434,14 +449,10 @@
       >
         <div class="word-main">
           <div class="japanese">
-            ${
-              hasReading && visible
-                ? `<ruby>${escapeHtml(entry.japanese)}<rt>${escapeHtml(entry.furigana)}</rt></ruby>`
-                : escapeHtml(entry.japanese)
-            }
+            ${renderJapanese(entry, visible)}
           </div>
         </div>
-        <div class="reading">${hasReading && visible ? escapeHtml(entry.furigana) : ""}</div>
+        <div class="reading">${visible && entry.romaji ? escapeHtml(entry.romaji) : ""}</div>
         <div class="translation">${escapeHtml(entry.translation)}</div>
         <div class="word-actions">
           <button class="ghost-button lesson-link-button" data-action="open-lesson" data-id="${escapeAttribute(lesson.id)}">
@@ -571,7 +582,7 @@
   }
 
   function renderEntry(entry) {
-    const hasReading = Boolean(entry.furigana);
+    const hasReading = Boolean(entry.furigana || entry.romaji);
     const visible = state.readingVisible.has(entry.id);
     const actions = renderEntryActions(entry);
 
@@ -582,14 +593,10 @@
       >
         <div class="word-main">
           <div class="japanese">
-            ${
-              hasReading && visible
-                ? `<ruby>${escapeHtml(entry.japanese)}<rt>${escapeHtml(entry.furigana)}</rt></ruby>`
-                : escapeHtml(entry.japanese)
-            }
+            ${renderJapanese(entry, visible)}
           </div>
         </div>
-        <div class="reading">${hasReading && visible ? escapeHtml(entry.furigana) : ""}</div>
+        <div class="reading">${visible && entry.romaji ? escapeHtml(entry.romaji) : ""}</div>
         <div class="translation">${escapeHtml(entry.translation)}</div>
         ${actions}
       </article>
@@ -642,6 +649,7 @@
       id: createId(),
       japanese,
       furigana,
+      romaji: "",
       translation,
       createdAt: new Date().toISOString(),
     });
@@ -740,6 +748,7 @@
           id: createId(),
           japanese: starterEntry.japanese,
           furigana: starterEntry.furigana || "",
+          romaji: starterEntry.romaji || "",
           translation: starterEntry.translation,
           createdAt: new Date().toISOString(),
         });

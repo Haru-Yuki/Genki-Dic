@@ -16,6 +16,7 @@
     ready: false,
     route: { name: "home" },
     data: { settings: { japaneseStyle: "standard", enableDeletion: false }, lessons: [] },
+    modal: "",
     searchQuery: "",
     readingVisible: new Set(),
     saving: false,
@@ -295,23 +296,8 @@
     app.innerHTML = `
       ${renderTopbar("Genki Dictionary", "Personal Japanese dictionary")}
       ${renderNotice()}
-      ${renderSettings()}
+      ${renderHomeActions()}
       ${renderSearchPanel()}
-      ${renderStarterImport()}
-
-      <section class="panel">
-        <form class="lesson-form" data-action="create-lesson">
-          <label>
-            <span>Lesson</span>
-            <input name="lessonNumber" inputmode="numeric" autocomplete="off" placeholder="5" required />
-          </label>
-          <label>
-            <span>Page</span>
-            <input name="pageNumber" inputmode="numeric" autocomplete="off" placeholder="130" required />
-          </label>
-          <button class="primary-button" type="submit">Create</button>
-        </form>
-      </section>
 
       <section class="section-head">
         <h2>Lessons</h2>
@@ -326,6 +312,53 @@
               <p>Create your first Genki page above.</p>
             </section>`
       }
+      ${renderModal()}
+    `;
+  }
+
+  function renderHomeActions() {
+    return `
+      <section class="home-actions" aria-label="Dictionary actions">
+        <button class="icon-button" data-action="open-modal" data-modal="create" aria-label="Create lesson" title="Create lesson">+</button>
+        <button class="icon-button" data-action="open-modal" data-modal="settings" aria-label="Open settings" title="Open settings">⚙</button>
+      </section>
+    `;
+  }
+
+  function renderModal() {
+    if (!state.modal) return "";
+
+    const title = state.modal === "settings" ? "Settings" : "Create lesson";
+    const content = state.modal === "settings" ? renderSettings() : renderCreateLessonForm();
+
+    return `
+      <section class="modal-backdrop" data-action="close-modal">
+        <div class="modal-panel" data-action="modal-panel" role="dialog" aria-modal="true" aria-label="${escapeAttribute(title)}">
+          <header class="modal-header">
+            <h2>${escapeHtml(title)}</h2>
+            <button class="icon-button compact" data-action="close-modal" aria-label="Close" title="Close">×</button>
+          </header>
+          ${content}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderCreateLessonForm() {
+    return `
+      <section class="panel modal-content-panel">
+        <form class="lesson-form" data-action="create-lesson">
+          <label>
+            <span>Lesson</span>
+            <input name="lessonNumber" inputmode="numeric" autocomplete="off" placeholder="5" required />
+          </label>
+          <label>
+            <span>Page</span>
+            <input name="pageNumber" inputmode="numeric" autocomplete="off" placeholder="130" required />
+          </label>
+          <button class="primary-button" type="submit">Create</button>
+        </form>
+      </section>
     `;
   }
 
@@ -629,6 +662,7 @@
     };
 
     state.data.lessons.push(lesson);
+    state.modal = "";
     form.reset();
     persist();
     navigate({ name: "lesson", id: lesson.id });
@@ -811,6 +845,20 @@
     if (action === "clear-search") {
       state.searchQuery = "";
       render();
+    }
+
+    if (action === "open-modal") {
+      state.modal = control.dataset.modal || "";
+      render();
+    }
+
+    if (action === "close-modal") {
+      state.modal = "";
+      render();
+    }
+
+    if (action === "modal-panel") {
+      return;
     }
 
     if (action === "import-starter") {

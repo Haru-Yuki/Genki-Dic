@@ -154,6 +154,52 @@ input::placeholder {
     0 12px 26px rgba(36, 49, 61, 0.06);
 }
 
+.home-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(36, 49, 61, 0.38);
+}
+
+.modal-panel {
+  width: min(520px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: 0 24px 70px rgba(36, 49, 61, 0.28);
+  padding: 14px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.modal-content-panel,
+.modal-panel .settings-panel {
+  margin: 0;
+}
+
 .search-panel {
   margin: 16px 0 24px;
   padding: 14px;

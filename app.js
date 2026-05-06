@@ -236,6 +236,15 @@
     return state.data.lessons.find((lesson) => lesson.id === state.route.id);
   }
 
+  function findEntryContext(entryId) {
+    for (const lesson of state.data.lessons) {
+      const entry = lesson.entries.find((item) => item.id === entryId);
+      if (entry) return { lesson, entry };
+    }
+
+    return null;
+  }
+
   function getSearchResults() {
     const query = state.searchQuery.trim().toLocaleLowerCase();
     if (!query) return [];
@@ -309,7 +318,7 @@
               <p>Create your first Genki page above.</p>
             </section>`
       }
-      ${renderModal()}
+      ${renderModalRoot()}
     `;
   }
 
@@ -339,6 +348,21 @@
         </div>
       </section>
     `;
+  }
+
+  function renderModalRoot() {
+    return `<div id="modal-root">${renderModal()}</div>`;
+  }
+
+  function updateModal() {
+    const modalRoot = document.getElementById("modal-root");
+
+    if (!modalRoot) {
+      render();
+      return;
+    }
+
+    modalRoot.innerHTML = renderModal();
   }
 
   function renderCreateLessonForm() {
@@ -886,12 +910,12 @@
 
     if (action === "open-modal") {
       state.modal = control.dataset.modal || "";
-      render();
+      updateModal();
     }
 
     if (action === "close-modal") {
       state.modal = "";
-      render();
+      updateModal();
     }
 
     if (action === "modal-panel") {
@@ -912,12 +936,21 @@
 
     if (action === "toggle-reading") {
       const entryId = control.dataset.id;
+      const context = findEntryContext(entryId);
       if (state.readingVisible.has(entryId)) {
         state.readingVisible.delete(entryId);
       } else {
         state.readingVisible.add(entryId);
       }
-      render();
+
+      if (!context) {
+        render();
+        return;
+      }
+
+      control.outerHTML = control.classList.contains("search-result")
+        ? renderSearchResult(context)
+        : renderEntry(context.entry);
     }
 
     if (action === "delete-entry") {

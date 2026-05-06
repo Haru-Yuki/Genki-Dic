@@ -7,6 +7,7 @@
   const STORAGE_CHUNK_SIZE = 3000;
   const CLOUD_STORAGE_TIMEOUT = 15000;
   const NOTICE_DISMISS_DELAY = 5000;
+  const PERSIST_DEBOUNCE_DELAY = 700;
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   const isTelegramMiniApp = Boolean(tg && tg.initData);
   const hasCloudStorage = Boolean(isTelegramMiniApp && tg.CloudStorage);
@@ -31,7 +32,6 @@
     addWordOpen: false,
     searchQuery: "",
     readingVisible: new Set(),
-    saving: false,
     status: "",
     error: "",
   };
@@ -40,6 +40,8 @@
   let noticeDismissTimer = 0;
   let noticeDismissKey = "";
   let persistQueue = Promise.resolve();
+  let persistTimer = 0;
+  let pendingPersistSerialized = "";
 
   const storage = {
     async get() {
@@ -51,16 +53,18 @@
       return value ? JSON.parse(value) : { lessons: [] };
     },
     async set(data) {
-      const serialized = JSON.stringify(data);
-
-      if (hasCloudStorage) {
-        await cloudSetData(serialized);
-        return;
-      }
-
-      window.localStorage.setItem(STORAGE_KEY, serialized);
+      await writeSerializedData(JSON.stringify(data));
     },
   };
+
+  async function writeSerializedData(serialized) {
+    if (hasCloudStorage) {
+      await cloudSetData(serialized);
+      return;
+    }
+
+    window.localStorage.setItem(STORAGE_KEY, serialized);
+  }
 
   function cloudGetItem(key) {
     return new Promise((resolve, reject) => {
@@ -232,34 +236,35 @@
     render();
   }
 
-  async function persist() {
-    const wasSaving = state.saving;
-    state.saving = true;
-    state.error = "";
+  function persist() {
+    pendingPersistSerialized = JSON.stringify(state.data);
 
-    if (!wasSaving) {
-      render();
+    if (persistTimer) {
+      window.clearTimeout(persistTimer);
     }
 
+    persistTimer = window.setTimeout(flushPersist, PERSIST_DEBOUNCE_DELAY);
+  }
+
+  function flushPersist() {
+    if (!pendingPersistSerialized) return;
+
+    const serialized = pendingPersistSerialized;
+    pendingPersistSerialized = "";
+    persistTimer = 0;
+
     const currentPersist = persistQueue.catch(() => undefined).then(async () => {
-      await storage.set(state.data);
+      await writeSerializedData(serialized);
     });
 
     persistQueue = currentPersist;
+    currentPersist.catch((error) => {
+      if (currentPersist !== persistQueue) return;
 
-    try {
-      await currentPersist;
-    } catch (error) {
-      if (currentPersist === persistQueue) {
-        state.status = "";
-        state.error = `Could not save changes: ${error.message}`;
-      }
-    } finally {
-      if (currentPersist === persistQueue) {
-        state.saving = false;
-        render();
-      }
-    }
+      state.status = "";
+      state.error = `Could not save changes: ${error.message}`;
+      render();
+    });
   }
 
   function lessonSort(a, b) {
@@ -685,7 +690,7 @@
 
       ${
         lesson.entries.length
-          ? `<section class="word-list">${lesson.entries.map(renderEntry).join("")}</section>`
+          ? `<div id="word-list-root">${renderWordList(lesson)}</div>`
           : `<section class="empty-state">
               <h2>No words yet</h2>
               <p>Add Japanese, optional reading, and a translation.</p>
@@ -693,6 +698,24 @@
       }
       ${renderModalRoot()}
     `;
+  }
+
+  function renderWordList(lesson) {
+    return `<section class="word-list">${lesson.entries.map(renderEntry).join("")}</section>`;
+  }
+
+  function updateWordList() {
+    const lesson = getCurrentLesson();
+    if (!lesson) return;
+
+    const root = document.getElementById("word-list-root");
+
+    if (root) {
+      root.innerHTML = renderWordList(lesson);
+      return;
+    }
+
+    render();
   }
 
   function renderAddWordBlock() {
@@ -776,10 +799,6 @@
 
     if (state.status) {
       parts.push(`<div class="notice is-dismissible">${escapeHtml(state.status)}</div>`);
-    }
-
-    if (state.saving) {
-      parts.push(`<div class="notice">Saving...</div>`);
     }
 
     return parts.join("");
@@ -942,6 +961,7 @@
     });
 
     form.reset();
+    updateWordList();
     persist();
   }
 
@@ -964,8 +984,9 @@
     context.entry.translation = translation;
     state.modal = "";
     state.editEntryId = "";
-    state.status = "Word updated.";
     state.error = "";
+    updateModal();
+    updateWordList();
     persist();
   }
 
@@ -975,6 +996,7 @@
 
     lesson.entries = lesson.entries.filter((entry) => entry.id !== entryId);
     state.readingVisible.delete(entryId);
+    updateWordList();
     persist();
   }
 
@@ -1007,8 +1029,8 @@
     if (state.data.settings.japaneseStyle === style) return;
 
     state.data.settings.japaneseStyle = style;
-    state.status = `Japanese style set to ${style === "book" ? "Book" : "Standard"}.`;
     state.error = "";
+    app.dataset.japaneseStyle = style;
     persist();
   }
 
@@ -1017,25 +1039,19 @@
     if (state.data.settings.fontSize === size) return;
 
     state.data.settings.fontSize = size;
-    state.status = `Font size set to ${size}.`;
     state.error = "";
+    app.dataset.fontSize = size;
     persist();
   }
 
   function toggleDeletion() {
     state.data.settings.enableDeletion = !state.data.settings.enableDeletion;
-    state.status = state.data.settings.enableDeletion
-      ? "Deletion enabled."
-      : "Deletion disabled.";
     state.error = "";
     persist();
   }
 
   function toggleEdit() {
     state.data.settings.enableEdit = !state.data.settings.enableEdit;
-    state.status = state.data.settings.enableEdit
-      ? "Edit enabled."
-      : "Edit disabled.";
     state.error = "";
     persist();
   }
@@ -1178,18 +1194,24 @@
 
     if (action === "set-japanese-style") {
       setJapaneseStyle(control.dataset.style);
+      updateModal();
     }
 
     if (action === "set-font-size") {
       setFontSize(control.dataset.size);
+      updateModal();
     }
 
     if (action === "toggle-deletion") {
       toggleDeletion();
+      updateModal();
+      updateWordList();
     }
 
     if (action === "toggle-edit") {
       toggleEdit();
+      updateModal();
+      updateWordList();
     }
 
     if (action === "toggle-add-word") {

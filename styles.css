@@ -497,7 +497,7 @@ input:focus {
 
 .word-row {
   display: grid;
-  grid-template-columns: 126px 132px minmax(0, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   align-items: center;
   width: 100%;
@@ -514,7 +514,7 @@ input:focus {
 }
 
 .word-row.has-actions {
-  grid-template-columns: 126px 132px minmax(0, 1fr) auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
 }
 
 .word-row.has-reading {
@@ -697,7 +697,7 @@ rt {
   }
 
   .word-row {
-    grid-template-columns: 70px 80px minmax(0, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
     width: 100%;
     min-height: 52px;
@@ -705,7 +705,7 @@ rt {
   }
 
   .word-row.has-actions {
-    grid-template-columns: 70px 80px minmax(0, 1fr) auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
   }
 
   .japanese {

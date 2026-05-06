@@ -671,7 +671,7 @@
           aria-expanded="${state.addWordOpen ? "true" : "false"}"
           type="button"
         >
-          <span>+ Add word</span>
+          <span>Add word</span>
           <small>Japanese · Furigana · Romaji · Translation</small>
         </button>
 

@@ -570,11 +570,11 @@
     const parts = [];
 
     if (state.error) {
-      parts.push(`<div class="notice error">${escapeHtml(state.error)}</div>`);
+      parts.push(`<div class="notice error is-dismissible">${escapeHtml(state.error)}</div>`);
     }
 
     if (state.status) {
-      parts.push(`<div class="notice">${escapeHtml(state.status)}</div>`);
+      parts.push(`<div class="notice is-dismissible">${escapeHtml(state.status)}</div>`);
     }
 
     if (state.saving) {

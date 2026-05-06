@@ -129,16 +129,8 @@ input::placeholder {
   opacity: 1;
 }
 
-.storage-pill {
-  flex: 0 0 auto;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: rgba(250, 246, 237, 0.86);
-  color: var(--muted);
-  font-size: 0.78rem;
-  white-space: nowrap;
-  transform: rotate(1deg);
+.topbar-actions {
+  align-self: flex-start;
 }
 
 .panel {
@@ -158,7 +150,7 @@ input::placeholder {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin: 12px 0 16px;
+  margin: 0;
 }
 
 .modal-backdrop {
@@ -695,8 +687,8 @@ rt {
 
   .topbar {
     align-items: flex-start;
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    gap: 12px;
   }
 
   .topbar h1 {

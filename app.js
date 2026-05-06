@@ -296,7 +296,6 @@
     app.innerHTML = `
       ${renderTopbar("Genki Dictionary", "Personal Japanese dictionary")}
       ${renderNotice()}
-      ${renderHomeActions()}
       ${renderSearchPanel()}
 
       <section class="section-head">
@@ -551,13 +550,18 @@
   }
 
   function renderTopbar(title, subtitle) {
+    const actions =
+      state.route.name === "home"
+        ? `<div class="topbar-actions">${renderHomeActions()}</div>`
+        : "";
+
     return `
       <header class="topbar">
         <div>
           <p>${escapeHtml(subtitle)}</p>
           <h1>${escapeHtml(title)}</h1>
         </div>
-        <span class="storage-pill">${hasCloudStorage ? "Telegram Cloud" : "Local browser"}</span>
+        ${actions}
       </header>
     `;
   }

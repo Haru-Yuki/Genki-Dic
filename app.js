@@ -5,6 +5,7 @@
   const STORAGE_MANIFEST_KEY = `${STORAGE_KEY}_manifest`;
   const STORAGE_CHUNK_PREFIX = `${STORAGE_KEY}_chunk_`;
   const STORAGE_CHUNK_SIZE = 900;
+  const NOTICE_DISMISS_DELAY = 5000;
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   const isTelegramMiniApp = Boolean(tg && tg.initData);
   const hasCloudStorage = Boolean(isTelegramMiniApp && tg.CloudStorage);
@@ -25,6 +26,8 @@
   };
 
   const app = document.getElementById("app");
+  let noticeDismissTimer = 0;
+  let noticeDismissKey = "";
 
   const storage = {
     async get() {
@@ -562,6 +565,8 @@
   }
 
   function renderNotice() {
+    syncNoticeDismissTimer();
+
     const parts = [];
 
     if (state.error) {
@@ -577,6 +582,39 @@
     }
 
     return parts.join("");
+  }
+
+  function syncNoticeDismissTimer() {
+    const key = [state.error, state.status].filter(Boolean).join("\n");
+
+    if (!key) {
+      clearNoticeDismissTimer();
+      return;
+    }
+
+    if (key === noticeDismissKey && noticeDismissTimer) return;
+
+    clearNoticeDismissTimer();
+    noticeDismissKey = key;
+    noticeDismissTimer = window.setTimeout(() => {
+      const currentKey = [state.error, state.status].filter(Boolean).join("\n");
+      if (currentKey !== noticeDismissKey) return;
+
+      state.error = "";
+      state.status = "";
+      noticeDismissTimer = 0;
+      noticeDismissKey = "";
+      render();
+    }, NOTICE_DISMISS_DELAY);
+  }
+
+  function clearNoticeDismissTimer() {
+    if (noticeDismissTimer) {
+      window.clearTimeout(noticeDismissTimer);
+    }
+
+    noticeDismissTimer = 0;
+    noticeDismissKey = "";
   }
 
   function renderLessonCard(lesson) {

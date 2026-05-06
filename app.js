@@ -415,6 +415,21 @@
     }
 
     modalRoot.innerHTML = renderModal();
+    focusModalField();
+  }
+
+  function focusModalField() {
+    if (state.modal !== "editEntry") return;
+
+    window.requestAnimationFrame(() => {
+      const translationInput = document.querySelector(
+        "[data-role='edit-translation-input']",
+      );
+      if (translationInput) {
+        translationInput.focus();
+        translationInput.select();
+      }
+    });
   }
 
   function renderCreateLessonForm() {
@@ -467,7 +482,12 @@
           </label>
           <label>
             <span>Translation</span>
-            <input name="translation" autocomplete="off" value="${escapeAttribute(entry.translation)}" />
+            <input
+              data-role="edit-translation-input"
+              name="translation"
+              autocomplete="off"
+              value="${escapeAttribute(entry.translation)}"
+            />
           </label>
           <button class="primary-button wide" type="submit">Save word</button>
         </form>

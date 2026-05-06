@@ -4,7 +4,8 @@
   const STORAGE_KEY = "genki_dic_v1";
   const STORAGE_MANIFEST_KEY = `${STORAGE_KEY}_manifest`;
   const STORAGE_CHUNK_PREFIX = `${STORAGE_KEY}_chunk_`;
-  const STORAGE_CHUNK_SIZE = 900;
+  const STORAGE_CHUNK_SIZE = 3000;
+  const CLOUD_STORAGE_TIMEOUT = 15000;
   const NOTICE_DISMISS_DELAY = 5000;
   const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
   const isTelegramMiniApp = Boolean(tg && tg.initData);
@@ -63,7 +64,13 @@
 
   function cloudGetItem(key) {
     return new Promise((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        reject(new Error(`CloudStorage timed out reading ${key}`));
+      }, CLOUD_STORAGE_TIMEOUT);
+
       tg.CloudStorage.getItem(key, (error, value) => {
+        window.clearTimeout(timeout);
+
         if (error) {
           reject(new Error(error));
           return;
@@ -75,7 +82,13 @@
 
   function cloudSetItem(key, value) {
     return new Promise((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        reject(new Error(`CloudStorage timed out writing ${key}`));
+      }, CLOUD_STORAGE_TIMEOUT);
+
       tg.CloudStorage.setItem(key, value, (error, isStored) => {
+        window.clearTimeout(timeout);
+
         if (error) {
           reject(new Error(error));
           return;
@@ -136,13 +149,6 @@
         updatedAt: new Date().toISOString(),
       }),
     );
-
-    const saved = await cloudGetData();
-    const savedSerialized = JSON.stringify(saved);
-
-    if (savedSerialized !== serialized) {
-      throw new Error("CloudStorage verification failed");
-    }
   }
 
   function normalizeData(data) {

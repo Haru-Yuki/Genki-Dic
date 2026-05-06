@@ -441,6 +441,7 @@
             }
           </div>
         </div>
+        <div class="reading">${hasReading ? escapeHtml(entry.furigana) : ""}</div>
         <div class="translation">${escapeHtml(entry.translation)}</div>
         <div class="word-actions">
           <button class="ghost-button lesson-link-button" data-action="open-lesson" data-id="${escapeAttribute(lesson.id)}">
@@ -588,6 +589,7 @@
             }
           </div>
         </div>
+        <div class="reading">${hasReading ? escapeHtml(entry.furigana) : ""}</div>
         <div class="translation">${escapeHtml(entry.translation)}</div>
         ${actions}
       </article>

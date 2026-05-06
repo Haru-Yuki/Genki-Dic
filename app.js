@@ -467,7 +467,7 @@
           </label>
           <label>
             <span>Translation</span>
-            <input name="translation" autocomplete="off" value="${escapeAttribute(entry.translation)}" required />
+            <input name="translation" autocomplete="off" value="${escapeAttribute(entry.translation)}" />
           </label>
           <button class="primary-button wide" type="submit">Save word</button>
         </form>
@@ -693,7 +693,7 @@
           ? `<div id="word-list-root">${renderWordList(lesson)}</div>`
           : `<section class="empty-state">
               <h2>No words yet</h2>
-              <p>Add Japanese, optional reading, and a translation.</p>
+              <p>Add Japanese and optional reading or translation.</p>
             </section>`
       }
       ${renderModalRoot()}
@@ -749,7 +749,7 @@
                   </label>
                   <label>
                     <span>Translation</span>
-                    <input name="translation" autocomplete="off" placeholder="food / meal" required />
+                    <input name="translation" autocomplete="off" placeholder="food / meal" />
                   </label>
                   <button class="primary-button wide" type="submit">Add word</button>
                 </form>
@@ -949,7 +949,7 @@
     const romaji = String(formData.get("romaji") || "").trim();
     const translation = String(formData.get("translation") || "").trim();
 
-    if (!japanese || !translation) return;
+    if (!japanese) return;
 
     lesson.entries.push({
       id: createId(),
@@ -976,7 +976,7 @@
     const romaji = String(formData.get("romaji") || "").trim();
     const translation = String(formData.get("translation") || "").trim();
 
-    if (!japanese || !translation) return;
+    if (!japanese) return;
 
     context.entry.japanese = japanese;
     context.entry.furigana = furigana;

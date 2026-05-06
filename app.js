@@ -298,11 +298,6 @@
       ${renderNotice()}
       ${renderSearchPanel()}
 
-      <section class="section-head">
-        <h2>Lessons</h2>
-        <span>${lessons.length}</span>
-      </section>
-
       ${
         lessons.length
           ? `<div class="lesson-list">${lessons.map(renderLessonCard).join("")}</div>`

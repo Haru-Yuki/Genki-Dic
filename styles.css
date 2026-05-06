@@ -193,7 +193,7 @@ input::placeholder {
 }
 
 .search-panel {
-  margin: 16px 0 24px;
+  margin: 30px 0 24px;
   padding: 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -444,23 +444,6 @@ input:focus {
 
 .full-width {
   width: 100%;
-}
-
-.section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 0 0 10px;
-}
-
-.section-head h2 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.section-head span {
-  color: var(--muted);
-  font-weight: 800;
 }
 
 .lesson-list,

@@ -685,6 +685,7 @@
         class="word-row has-actions search-result ${hasReading ? "has-reading" : ""}"
         ${hasReading ? `data-action="toggle-reading" data-id="${escapeAttribute(entry.id)}"` : ""}
       >
+        ${renderWanikaniLinks(entry)}
         <div class="word-main">
           <div class="japanese">
             ${renderJapanese(entry, visible)}
@@ -693,7 +694,6 @@
         <div class="reading">${visible && entry.romaji ? escapeHtml(entry.romaji) : ""}</div>
         <div class="translation">${escapeHtml(entry.translation)}</div>
         <div class="word-actions">
-          ${renderWanikaniLinks(entry)}
           <button class="ghost-button lesson-link-button" data-action="open-lesson" data-id="${escapeAttribute(lesson.id)}">
             L${escapeHtml(lesson.lessonNumber)}
           </button>
@@ -946,6 +946,7 @@
         class="word-row ${actions ? "has-actions" : ""} ${hasReading ? "has-reading" : ""}"
         ${hasReading ? `data-action="toggle-reading" data-id="${escapeAttribute(entry.id)}"` : ""}
       >
+        ${renderWanikaniLinks(entry)}
         <div class="word-main">
           <div class="japanese">
             ${renderJapanese(entry, visible)}
@@ -960,11 +961,6 @@
 
   function renderEntryActions(entry) {
     const actions = [];
-
-    const wanikaniLinks = renderWanikaniLinks(entry);
-    if (wanikaniLinks) {
-      actions.push(wanikaniLinks);
-    }
 
     if (state.data.settings.enableEdit) {
       actions.push(
@@ -991,23 +987,25 @@
     const links = [];
 
     if (entry.wanikaniKanjiUrl) {
-      links.push(renderWanikaniLink(entry.wanikaniKanjiUrl, "Kanji"));
+      links.push(renderWanikaniLink(entry.wanikaniKanjiUrl, "K", "kanji"));
     }
 
     if (entry.wanikaniWordUrl) {
-      links.push(renderWanikaniLink(entry.wanikaniWordUrl, "Word"));
+      links.push(renderWanikaniLink(entry.wanikaniWordUrl, "W", "word"));
     }
 
-    return links.join("");
+    if (!links.length) return "";
+
+    return `<div class="wk-links">${links.join("")}</div>`;
   }
 
-  function renderWanikaniLink(url, label) {
+  function renderWanikaniLink(url, label, type) {
     const safeUrl = normalizeWanikaniUrl(url);
     if (!safeUrl) return "";
 
     return `
       <a
-        class="ghost-button wk-link-button"
+        class="wk-link-button ${type === "kanji" ? "kanji" : "word"}"
         data-action="external-link"
         href="${escapeAttribute(safeUrl)}"
         target="_blank"

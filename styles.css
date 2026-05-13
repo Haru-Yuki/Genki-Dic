@@ -708,6 +708,7 @@ input:focus {
 }
 
 .word-row {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
@@ -821,14 +822,37 @@ rt {
   font-size: 0.82rem;
 }
 
+.wk-links {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 2;
+  display: flex;
+  gap: 3px;
+  pointer-events: none;
+}
+
 .wk-link-button {
   display: inline-grid;
-  min-height: 30px;
+  width: 19px;
+  min-height: 19px;
   place-items: center;
-  padding: 0 9px;
-  color: var(--accent-strong);
-  font-size: 0.78rem;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1;
   text-decoration: none;
+  pointer-events: auto;
+  box-shadow: 0 1px 4px rgba(36, 49, 61, 0.18);
+}
+
+.wk-link-button.word {
+  background: #aa00ff;
+}
+
+.wk-link-button.kanji {
+  background: #00aaff;
 }
 
 .edit-button {

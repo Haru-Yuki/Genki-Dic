@@ -189,6 +189,8 @@
                   furigana: furiganaLooksLikeRomaji ? "" : rawFurigana,
                   romaji: rawRomaji || (furiganaLooksLikeRomaji ? rawFurigana : ""),
                   translation: String(entry.translation || "").trim(),
+                  wanikaniKanjiUrl: String(entry.wanikaniKanjiUrl || "").trim(),
+                  wanikaniWordUrl: String(entry.wanikaniWordUrl || "").trim(),
                   createdAt: entry.createdAt || new Date().toISOString(),
                 };
               })
@@ -489,6 +491,26 @@
               value="${escapeAttribute(entry.translation)}"
             />
           </label>
+          <label>
+            <span>WaniKani Kanji</span>
+            <input
+              name="wanikaniKanjiUrl"
+              inputmode="url"
+              ${renderInputAssistOff()}
+              value="${escapeAttribute(entry.wanikaniKanjiUrl)}"
+              placeholder="https://www.wanikani.com/kanji/..."
+            />
+          </label>
+          <label>
+            <span>WaniKani Word</span>
+            <input
+              name="wanikaniWordUrl"
+              inputmode="url"
+              ${renderInputAssistOff()}
+              value="${escapeAttribute(entry.wanikaniWordUrl)}"
+              placeholder="https://www.wanikani.com/vocabulary/..."
+            />
+          </label>
           <button class="primary-button wide" type="submit">Save word</button>
         </form>
       </section>
@@ -671,6 +693,7 @@
         <div class="reading">${visible && entry.romaji ? escapeHtml(entry.romaji) : ""}</div>
         <div class="translation">${escapeHtml(entry.translation)}</div>
         <div class="word-actions">
+          ${renderWanikaniLinks(entry)}
           <button class="ghost-button lesson-link-button" data-action="open-lesson" data-id="${escapeAttribute(lesson.id)}">
             L${escapeHtml(lesson.lessonNumber)}
           </button>
@@ -748,7 +771,7 @@
           type="button"
         >
           <span>Add word</span>
-          <small>Japanese · Furigana · Romaji · Translation</small>
+          <small>Japanese · Furigana · Romaji · Translation · WaniKani</small>
         </button>
 
         ${
@@ -770,6 +793,24 @@
                   <label>
                     <span>Translation</span>
                     <input name="translation" ${renderInputAssistOff()} placeholder="food / meal" />
+                  </label>
+                  <label>
+                    <span>WaniKani Kanji</span>
+                    <input
+                      name="wanikaniKanjiUrl"
+                      inputmode="url"
+                      ${renderInputAssistOff()}
+                      placeholder="https://www.wanikani.com/kanji/..."
+                    />
+                  </label>
+                  <label>
+                    <span>WaniKani Word</span>
+                    <input
+                      name="wanikaniWordUrl"
+                      inputmode="url"
+                      ${renderInputAssistOff()}
+                      placeholder="https://www.wanikani.com/vocabulary/..."
+                    />
                   </label>
                   <button class="primary-button wide" type="submit">Add word</button>
                 </form>
@@ -920,6 +961,11 @@
   function renderEntryActions(entry) {
     const actions = [];
 
+    const wanikaniLinks = renderWanikaniLinks(entry);
+    if (wanikaniLinks) {
+      actions.push(wanikaniLinks);
+    }
+
     if (state.data.settings.enableEdit) {
       actions.push(
         `<button class="ghost-button edit-button" data-action="open-edit-entry" data-id="${escapeAttribute(entry.id)}" type="button">Edit</button>`,
@@ -939,6 +985,50 @@
         ${actions.join("")}
       </div>
     `;
+  }
+
+  function renderWanikaniLinks(entry) {
+    const links = [];
+
+    if (entry.wanikaniKanjiUrl) {
+      links.push(renderWanikaniLink(entry.wanikaniKanjiUrl, "Kanji"));
+    }
+
+    if (entry.wanikaniWordUrl) {
+      links.push(renderWanikaniLink(entry.wanikaniWordUrl, "Word"));
+    }
+
+    return links.join("");
+  }
+
+  function renderWanikaniLink(url, label) {
+    const safeUrl = normalizeWanikaniUrl(url);
+    if (!safeUrl) return "";
+
+    return `
+      <a
+        class="ghost-button wk-link-button"
+        data-action="external-link"
+        href="${escapeAttribute(safeUrl)}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >${escapeHtml(label)}</a>
+    `;
+  }
+
+  function normalizeWanikaniUrl(url) {
+    const value = String(url || "").trim();
+    if (!value) return "";
+
+    if (/^https:\/\/www\.wanikani\.com\/(?:kanji|vocabulary)\//.test(value)) {
+      return value;
+    }
+
+    if (/^https:\/\/wanikani\.com\/(?:kanji|vocabulary)\//.test(value)) {
+      return value.replace("https://wanikani.com/", "https://www.wanikani.com/");
+    }
+
+    return "";
   }
 
   function createLesson(form) {
@@ -972,6 +1062,8 @@
     const furigana = String(formData.get("furigana") || "").trim();
     const romaji = String(formData.get("romaji") || "").trim();
     const translation = String(formData.get("translation") || "").trim();
+    const wanikaniKanjiUrl = normalizeWanikaniUrl(formData.get("wanikaniKanjiUrl"));
+    const wanikaniWordUrl = normalizeWanikaniUrl(formData.get("wanikaniWordUrl"));
 
     if (!japanese) return;
 
@@ -981,6 +1073,8 @@
       furigana,
       romaji,
       translation,
+      wanikaniKanjiUrl,
+      wanikaniWordUrl,
       createdAt: new Date().toISOString(),
     });
 
@@ -999,6 +1093,8 @@
     const furigana = String(formData.get("furigana") || "").trim();
     const romaji = String(formData.get("romaji") || "").trim();
     const translation = String(formData.get("translation") || "").trim();
+    const wanikaniKanjiUrl = normalizeWanikaniUrl(formData.get("wanikaniKanjiUrl"));
+    const wanikaniWordUrl = normalizeWanikaniUrl(formData.get("wanikaniWordUrl"));
 
     if (!japanese) return;
 
@@ -1006,6 +1102,8 @@
     context.entry.furigana = furigana;
     context.entry.romaji = romaji;
     context.entry.translation = translation;
+    context.entry.wanikaniKanjiUrl = wanikaniKanjiUrl;
+    context.entry.wanikaniWordUrl = wanikaniWordUrl;
     state.modal = "";
     state.editEntryId = "";
     state.error = "";
@@ -1120,6 +1218,8 @@
           furigana: starterEntry.furigana || "",
           romaji: starterEntry.romaji || "",
           translation: starterEntry.translation,
+          wanikaniKanjiUrl: "",
+          wanikaniWordUrl: "",
           createdAt: new Date().toISOString(),
         });
         addedWords += 1;
@@ -1173,6 +1273,10 @@
 
     const action = control.dataset.action;
     event.stopPropagation();
+
+    if (action === "external-link") {
+      return;
+    }
 
     if (action === "open-lesson") {
       navigate({ name: "lesson", id: control.dataset.id });

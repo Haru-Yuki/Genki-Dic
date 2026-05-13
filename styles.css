@@ -821,6 +821,16 @@ rt {
   font-size: 0.82rem;
 }
 
+.wk-link-button {
+  display: inline-grid;
+  min-height: 30px;
+  place-items: center;
+  padding: 0 9px;
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  text-decoration: none;
+}
+
 .edit-button {
   min-height: 30px;
   padding: 0 10px;
